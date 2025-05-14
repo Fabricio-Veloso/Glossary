@@ -85,20 +85,24 @@ user www-data;
 
 O Nginx lê apenas um arquivo principal, por padrão:
 
+```
 /etc/nginx/nginx.conf
+```
 
 Mas esse arquivo pode incluir outros arquivos, usando a diretiva include.
 ✅ Boas práticas:
 
-    Colocar configurações de servidores individuais ou blocos em arquivos separados, dentro de:
+- Colocar configurações de servidores individuais ou blocos em arquivos separados, dentro de:
 
+```
 /etc/nginx/conf.d/
 
-ou
+OU
 
-    /etc/nginx/sites-available/ (usado com symlink para sites-enabled/)
+/etc/nginx/sites-available/ (usado com symlink para sites-enabled/)
+```
 
-🧠 Exemplo típico:
+### 🧠 Exemplo típico:
 
 No nginx.conf:
 
@@ -127,20 +131,22 @@ Assim, você pode modularizar seu setup. Exemplo:
 
     ssl.conf → configuração compartilhada de TLS
 
-🚀 3. Usando arquivos diferentes de configuração
+### 🚀 3. Usando arquivos diferentes de configuração
 
 Você pode rodar o Nginx com qualquer arquivo de configuração custom, sem tocar no /etc/nginx/nginx.conf.
 👇 Comando:
 
+```
 nginx -c /caminho/personalizado/meu_nginx.conf
+```
 
 Isso é útil, por exemplo:
 
-    Em testes locais
+- Em testes locais
 
-    Em ambientes de CI/CD
+- Em ambientes de CI/CD
 
-    Em containers
+- Em containers
 
 ## 🔄 Reload vs Start vs Test
 
@@ -157,23 +163,192 @@ Isso é útil, por exemplo:
 
 ## 💡 Dicas práticas
 
-    Nunca edite diretamente o nginx.conf em produção.
-    Use includes e versionamento.
+- Nunca edite diretamente o nginx.conf em produção.
+- Use includes e versionamento.
+- Separe responsabilidades:
+- Um arquivo para logs
+- Um para gzip/cache
+- Um para balanceamento
+- Um por app/site
+- Permissões dos arquivos são críticas.
+- O user configurado precisa conseguir ler os arquivos e pastas definidos no root.
+- Considere usar symlinks com sites-available e sites-enabled, como o Apache faz.
+- Isso facilita habilitar/desabilitar configs com:
+  - ln -s /etc/nginx/sites-available/meusite.conf /etc/nginx/sites-enabled/
 
-    Separe responsabilidades:
+## 🧠 Outras variáveis úteis:
 
-        Um arquivo para logs
+#### Variável O que representa
 
-        Um para gzip/cache
+```
+$uri         	   Caminho da URL normalizado (sem args, etc.)
+$request_uri       Caminho da URL completo com query string
+$host	           Host da requisição (api.seudominio.com)
+$remote_addr       IP do cliente
+$http_user_agent   User-Agent do navegador
+$args Query string (param1=foo&param2=bar)
+```
 
-        Um para balanceamento
+## Diretivas úteis:
 
-        Um por app/site
+### 🔹 proxy_pass
 
-    Permissões dos arquivos são críticas.
-    O user configurado precisa conseguir ler os arquivos e pastas definidos no root.
+Encaminha a requisição para um destino.
+Aceita:
 
-    Considere usar symlinks com sites-available e sites-enabled, como o Apache faz.
-    Isso facilita habilitar/desabilitar configs com:
+- HTTP (backend web)
+- HTTPS (backend seguro)
+- Endereço IP ou domínio
+- Com ou sem caminho
 
-    ln -s /etc/nginx/sites-available/meusite.conf /etc/nginx/sites-enabled/
+Exemplos:
+
+```
+proxy_pass http://localhost:5000;
+proxy_pass https://api.seuservidor.com;
+```
+
+- 🧠 Dica avançada: Se você usa location /api/, e faz proxy_pass http://localhost:5000/, o sufixo / afeta como a URL é reescrita. Isso pode quebrar rotas se mal usado.
+
+### 🔹 proxy_http_version
+
+Usado quando o backend exige uma versão específica do HTTP.
+
+    1.1: padrão moderno
+
+    1.0: raramente necessário hoje
+
+    2: não é suportado por proxy_pass (Nginx não faz proxy com HTTP/2 upstream, apenas downstream)
+
+    ⚠️ Use 1.1 especialmente se o backend usar WebSockets.
+
+### 🔹 proxy_set_header
+
+Permite alterar ou definir headers que serão enviados ao backend.
+Exemplos importantes:
+
+```
+proxy_set_header Host $host; # Domínio original (ex: meusite.com)
+proxy_set_header X-Real-IP $remote_addr; # IP real do cliente
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # Lista de IPs
+proxy_set_header X-Forwarded-Proto $scheme; # http ou https
+```
+
+Esses headers são úteis porque o backend, por padrão, não sabe:
+
+- Qual era o IP do cliente
+- Se a requisição veio de HTTPS
+- Qual domínio foi acessado
+- ASP.NET Core, por exemplo, pode se basear nesses headers para redirecionamentos, geração de links, autenticação, etc.
+
+### 🔹 proxy_cache_bypass
+
+- Controla quando o Nginx deve ignorar o cache (se estiver configurado).
+
+```
+proxy_cache_bypass $http_upgrade;
+```
+
+- Significa: "se o header Upgrade estiver presente, não use o cache".
+- Isso é importante para WebSockets, SSE, etc., que não podem ser cacheados.
+
+### 🔹 proxy_redirect
+
+- Controla se o Nginx deve reescrever cabeçalhos Location vindos do backend.
+
+```
+proxy_redirect off;
+
+Ou:
+
+proxy_redirect http://localhost:5000/ https://meusite.com/;
+```
+
+- Útil quando o backend gera URLs absolutas para redirecionamento.
+
+### 🔹 proxy_read_timeout, proxy_connect_timeout, proxy_send_timeout
+
+Define timeouts da comunicação com o backend.
+
+```
+proxy_connect_timeout 10s;
+proxy_send_timeout 30s;
+proxy_read_timeout 30s;
+```
+
+- Esses valores evitam travamento caso o backend esteja lento ou não responda.
+
+### 🔹 proxy_buffering
+
+Habilita ou desabilita buffer entre Nginx e backend. Por padrão, é on.
+
+proxy_buffering off;
+
+- Útil se você quer streaming de dados em tempo real (ex: logs, SSE).
+
+## 🍽️ Montando seu próprio "prato"
+
+Você pode montar o bloco location /api/ como quiser, dependendo das suas necessidades. Aqui vai um exemplo mais completo:
+
+location /api/ {
+proxy_pass http://localhost:5000;
+
+```
+# Segurança e contexto do cliente
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+
+# Suporte a WebSockets (opcional)
+proxy_http_version 1.1;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+
+# Controle de cache e tempo de resposta
+proxy_cache_bypass $http_upgrade;
+proxy_connect_timeout 10s;
+proxy_read_timeout 30s;
+proxy_send_timeout 30s;
+
+# Reescrita de redirecionamento se o backend gera URLs absolutas
+proxy_redirect off;
+
+}
+```
+
+## Opções importantes
+
+### Server Slow-Start
+
+- The server slow‑start feature prevents a recently recovered server from being overwhelmed by connections, which may time out and cause the server to be marked as failed again.
+
+- In NGINX Plus, slow‑start allows an upstream server to gradually recover its weight from 0 to its nominal value after it has been recovered or became available. This can be done with the slow_start parameter to the server directive:
+
+```
+upstream backend {
+    server backend1.example.com slow_start=30s;
+    server backend2.example.com;
+    server 192.0.0.1 backup;
+}
+```
+
+- The time value (here, 30 seconds) sets the time during which NGINX Plus ramps up the number of connections to the server to the full value.
+
+- Note that if there is only a single server in a group, the max_fails, fail_timeout, and slow_start parameters to the server directive are ignored and the server is never considered unavailable.
+
+### ✅ HTTP Health Checks
+
+📌 O que são?
+
+São verificações automáticas feitas pelo balanceador de carga (como o Nginx) para saber se um servidor backend (ex: sua API ASP.NET) está saudável e pode receber requisições.
+
+    Isso evita que o Nginx envie requisições para servidores que estão offline, lentos ou com erro.
+
+🧪 Como funciona:
+
+    O Nginx faz requisições periódicas (ex: GET /health) para o backend.
+
+    Se o backend responde com um código 200 OK, ele é considerado saudável.
+
+    Se responde com erro (ex: 500, 502) ou não responde, o Nginx pode tirá-lo temporariamente do pool.
