@@ -31,7 +31,12 @@ const all = app.vault.getAllLoadedFiles();
 Filtrar Apenas Pastas
 
 ```
-const folders = all.filter(f => f instanceof TFolder);
+import { TFolder } from 'obsidian';
+
+export function logProgressCb() {
+	const folders = app.vault.getAllLoadedFiles().filter(f => f instanceof TFolder);
+	console.log(folders);
+}
 ```
 
 Filtrar Arquivos por Extensão
