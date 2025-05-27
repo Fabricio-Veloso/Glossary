@@ -95,3 +95,49 @@ chmod -R 755 meuapp/
 ```
 chmod 666 arquivo.txt
 ```
+
+# systemctl
+
+### ⚙️ Comandos comuns do systemd
+
+- Inicia o serviço manualmente
+
+```
+sudo systemctl start nome
+```
+
+- Para o serviço
+
+```
+sudo systemctl stop nome
+```
+
+- nome Reinicia o serviço
+
+```
+sudo systemctl restart
+```
+
+- Mostra status do serviço (ativo, falhou, etc.)
+
+```
+sudo systemctl status nome
+```
+
+- Habilita para iniciar automaticamente com o sistema
+
+```
+sudo systemctl enable nome
+```
+
+- Desabilita o auto-start
+
+```
+sudo systemctl disable nome
+```
+
+- Recarrega configurações dos arquivos de serviço
+
+```
+sudo systemctl daemon-reload
+```
