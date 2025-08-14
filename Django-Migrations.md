@@ -8,7 +8,7 @@ Migrações são arquivos Python gerados pelo Django que descrevem as alteraçõ
 
 ## ✅ Fluxo padrão de alteração de modelos
 
-1.  **Altere o modelo (ex: adicionar um campo em `User`)**
+1.  **Altere o modelo (ex: adicionar um atributo de e-mail em uma entidade de usuário `User`)**
 2.  Gere as migrações:
 
     ```bash
