@@ -30,13 +30,14 @@
 
 ### 🔍 Dicas de regex úteis
 
-| Padrão | Significado              |
-| ------ | ------------------------ |
-| `^`    | Início da linha          |
-| `$`    | Fim da linha             |
-| `.*`   | Qualquer coisa           |
-| `\v`   | Ativa modo regex “fácil” |
-| `\0`   | Match completo           |
+| Padrão    | Significado              |
+| --------- | ------------------------ |
+| `^`       | Início da linha          |
+| `$`       | Fim da linha             |
+| `.*`      | Qualquer coisa           |
+| `\v`      | Ativa modo regex “fácil” |
+| `\0`      | Match completo           |
+| :%s/\r//g | retirar ^M do arquivo.   |
 
 ### 💡 Observações
 
