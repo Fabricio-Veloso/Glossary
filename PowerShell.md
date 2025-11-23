@@ -267,3 +267,176 @@ Domine:
     - Splatting e boas práticas de nomeação
 
 - 💡 Sempre teste scripts com -WhatIf, comente código, e use $PSScriptRoot para garantir compatibilidade.
+---
+## 🔹 19. Operadores de Comparação
+- No PowerShell, comparações **não usam `==`** (como em outras linguagens), e sim **operadores verbais**.  
+  Isso torna o código mais legível e expressivo.
+
+| Tipo de Comparação | Operador | Exemplo | Resultado |
+|--------------------|-----------|----------|------------|
+| Igual              | `-eq`     | `$x -eq 10` | Verdadeiro se `$x` for igual a 10 |
+| Diferente          | `-ne`     | `$x -ne 10` | Verdadeiro se `$x` for diferente de 10 |
+| Maior que          | `-gt`     | `$x -gt 5`  | Verdadeiro se `$x` for maior que 5 |
+| Menor que          | `-lt`     | `$x -lt 5`  | Verdadeiro se `$x` for menor que 5 |
+| Maior ou igual     | `-ge`     | `$x -ge 10` | Verdadeiro se `$x` ≥ 10 |
+| Menor ou igual     | `-le`     | `$x -le 3`  | Verdadeiro se `$x` ≤ 3 |
+
+```powershell
+$currentData = @{ isFirstExec = 1 }
+
+if ($currentData.isFirstExec -eq 1) {
+    Write-Host "Primeira execução detectada."
+} else {
+    Write-Host "Execução subsequente."
+}
+```
+    💡 Dica: Se o valor vier de um JSON (string "1"), converta com [int]$valor antes de comparar:
+
+```powershell
+if ([int]$currentData.isFirstExec -eq 1) { ... }
+```
+---
+### 🔹 20. Declaração de Parâmetros com param()
+
+- Um script ou função PowerShell deve conter apenas um bloco param().
+Nele, você lista todos os parâmetros, separados por vírgulas.
+Vários blocos param() são inválidos e apenas o primeiro será considerado.
+
+✅ Correto:
+```powershell
+param(
+    [string]$PromptMessage = "Digite o nome do usuário:",
+    [string]$DataFilePath
+)
+Write-Host $PromptMessage
+Write-Host "Arquivo: $DataFilePath"
+
+```
+❌ Errado:
+```powershell
+param([string]$PromptMessage)
+param([string]$DataFilePath)
+```
+    💡 Boas práticas:
+
+- Coloque o bloco param() no início do script.
+- Use [Parameter(Mandatory = $true)] para tornar um argumento obrigatório.
+- Combine com validações para maior robustez.
+```powershell
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$DataFilePath,
+
+    [string]$PromptMessage = "Digite o nome do usuário:"
+)
+
+Write-Host "Iniciando script com arquivo: $DataFilePath"
+```
+---
+### 🔹 21. JSON no PowerShell: Criar, Reescrever e Atualizar
+
+- No PowerShell, arquivos JSON são convertidos para objetos usando `ConvertFrom-Json`.
+- Por padrão, o JSON vira um **PSCustomObject**, que não aceita criar novas propriedades dinamicamente se elas não existirem.
+
+```powershell
+# Exemplo de leitura
+$data = Get-Content "config.json" | ConvertFrom-Json
+# Se config.json só tem {"isFirstExec":1}, $data.username = "fab" gera erro
+```
+- 💡 Problema comum: tentar adicionar uma chave nova diretamente a um PSCustomObject vindo de JSON.
+
+---
+### 🔹 22. Usando Hashtable para manipular JSON dinamicamente
+
+- Convertendo para hashtable, você pode adicionar novas chaves livremente, mantendo as existentes.
+```powershell
+# Lê o JSON como hashtable
+$data = Get-Content "config.json" | ConvertFrom-Json -AsHashtable
+
+# Adiciona ou atualiza chave
+$data["username"] = "fab"
+
+# Salva de volta
+$data | ConvertTo-Json | Set-Content "config.json"
+```
+- Resultado: qualquer chave anterior é preservada, e você consegue adicionar novas sem erro.
+
+---
+### 🔹 23. Adicionando propriedades dinamicamente em PSCustomObject
+
+- Se preferir manter o PSCustomObject, use Add-Member -Force:
+```powershell
+$data = Get-Content "config.json" | ConvertFrom-Json
+
+# Adiciona nova propriedade
+Add-Member -InputObject $data -NotePropertyName "username" -NotePropertyValue "fab" -Force
+
+# Salva novamente
+$data | ConvertTo-Json | Set-Content "config.json"
+```
+- Force garante que a propriedade seja criada mesmo se não existisse antes.
+
+---
+### 🔹 24. Criando JSON do zero
+
+- Útil se você quer garantir uma estrutura limpa, sem depender do que já existe.
+```powershell
+$data = @{
+    isFirstExec = 1
+    username    = "fab"
+    theme       = "dark"
+}
+# Salva JSON
+$data | ConvertTo-Json | Set-Content "config.json"
+```
+- 💡 Bom para inicialização de arquivos de configuração.
+---
+### 🔹 25. Estrutura recomendada para arquivos JSON de configuração
+
+- Para armazenar múltiplas chaves do tipo dicionário (chave: valor):
+```powershell
+{
+  "isFirstExec": 0,
+  "username": "Fabricio",
+  "lastRunDate": "2025-10-27T17:00:00",
+  "theme": "dark"
+}
+```
+- Cada chave é independente e pode ser adicionada/atualizada dinamicamente sem reescrever o restante.
+---
+### 🔹 26. Função genérica para atualizar JSON de forma segura
+```powershell
+function Update-JsonFile {
+    param(
+        [string]$Path,
+        [hashtable]$NewData
+    )
+
+    if (Test-Path $Path) {
+        try {
+            $data = Get-Content $Path -Raw | ConvertFrom-Json -AsHashtable
+        } catch {
+            Write-Warning "⚠️ JSON inválido ou arquivo vazio. Criando novo."
+            $data = @{}
+        }
+    } else {
+        $data = @{}
+    }
+
+    # Atualiza ou adiciona chaves
+    foreach ($key in $NewData.Keys) {
+        $data[$key] = $NewData[$key]
+    }
+
+    # Salva de volta
+    $data | ConvertTo-Json -Depth 10 | Set-Content $Path
+}
+```
+```powershell
+# Uso:
+Update-JsonFile -Path "config.json" -NewData @{ username = "fab"; theme = "dark" }
+```
+- ✅ Mantém todas as chaves anteriores e adiciona novas de forma segura.
+
+- 💡 Pode ser usada para qualquer arquivo JSON de configuração que precise de updates incrementais.
