@@ -32,7 +32,7 @@ No seu layout, isto aqui controla a disposição horizontal:
 
 O display:flex é o que coloca os itens lado a lado.
 
-Se você remove essa <div> ou remove o display:flex, cada filho volta para o comportamento padrão de bloco → fica um em cima do outro.
+Se você remove essa div ou remove o display:flex, cada filho volta para o comportamento padrão de bloco → fica um em cima do outro.
 
 Ou seja, o “culpado” não é o position:relative, mas sim o fluxo normal que volta quando o flex desaparece.
 
@@ -63,11 +63,11 @@ No seu editor, os textos arrastáveis usam isso para ficarem dentro da imagem.
 ### 3.2. Permitir deslocamentos opcionais
 
 Se você colocar:
-
+```css
 position:relative;
 top:10px;
 left:20px;
-
+```
 
 Ele continua ocupando seu espaço normal, mas o visual dele é deslocado por cima do layout.
 
@@ -76,20 +76,22 @@ Isso é útil para ajustes finos, mas não para layouts estruturais.
 ### Resumo rápido:
 
 Position Mantém espaço original? Pode usar top/left? Sai do fluxo normal?
-static sim não não
-relative sim sim não
-absolute não sim sim
-fixed não sim sim
-sticky sim/não sim parcialmente
+| Position        | Mantém espaço original? | Pode usar top/left? | Sai do fluxo normal? |
+| --------------- | ----------------------- | ------------------- | -------------------- |
+| static (padrão) | sim                     | não                 | não                  |
+| relative        | sim                     | sim                 | não                  |
+| absolute        | não                     | sim                 | sim                  |
+| fixed           | não                     | sim                 | sim                  |
+| sticky          | sim/não                 | sim                 | parcialmente         |
 
 
 ---
 
-## 4. Por que tanta <div> com position:relative no seu código?
+## 4. Por que tanta div com position:relative no seu código?
 
 Porque no seu editor:
 
-- Uma <div> pai define um contexto de coordenadas.  
+- Uma div pai define um contexto de coordenadas.  
 - Os textos arrastáveis dentro dela são position:absolute.  
 - Eles precisam desse “mundo local” para se mover sem sair da borda da imagem.
 
@@ -101,16 +103,16 @@ Sem o position:relative no contêiner da imagem, arrastar elementos se tornaria 
 
 ### 5.1. Via HTML direto
 
-\`\`\`html
+```html
 <div class="preview-container">
     <div class="label">Nome do participante</div>
     <div class="label">Cidade</div>
 </div>
-\`\`\`
+```
 
 ### 5.2. Via JavaScript (mais comum em editores visuais)
 
-\`\`\`js
+```js
 const container = document.getElementById("preview-container");
 
 const novo = document.createElement("div");
@@ -121,7 +123,7 @@ novo.style.top = "100px";
 novo.style.left = "80px";
 
 container.appendChild(novo);
-\`\`\`
+```
 
 ### 5.3. Via DOM + template
 
