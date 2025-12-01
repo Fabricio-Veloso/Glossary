@@ -63,6 +63,163 @@ Equivalente a: *eletricidade, automação, sensores*.
 | `<form>` | Formulário | `<form>` |
 | `<label>` | Rótulo | `<label for="">` |
 
+- Código base para visualizar no navegador (copie e cole em um visualizador de HTML)
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Guia Visual de Elementos HTML</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 32px;
+    background: #f4f4f4;
+  }
+  h1 {
+    margin-bottom: 24px;
+  }
+  .card {
+    background: white;
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .example-box {
+    padding: 12px;
+    background: #fafafa;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Guia Visual dos Elementos HTML</h1>
+
+<!-- DIV -->
+<div class="card">
+  <h2>&lt;div&gt;</h2>
+  <p>Contêiner genérico de bloco.</p>
+  <div class="example-box">
+    <div style="padding:8px; background:#ddeaff;">Eu sou uma DIV</div>
+  </div>
+</div>
+
+<!-- SPAN -->
+<div class="card">
+  <h2>&lt;span&gt;</h2>
+  <p>Texto inline, não quebra linha.</p>
+  <div class="example-box">
+    <p>Texto normal e <span style="background: yellow;">um span destacado</span> aqui.</p>
+  </div>
+</div>
+
+<!-- IMG -->
+<div class="card">
+  <h2>&lt;img&gt;</h2>
+  <p>Exibe imagens.</p>
+  <div class="example-box">
+    <img src="https://via.placeholder.com/120" alt="Exemplo" />
+  </div>
+</div>
+
+<!-- A -->
+<div class="card">
+  <h2>&lt;a&gt;</h2>
+  <p>Link clicável.</p>
+  <div class="example-box">
+    <a href="https://google.com" target="_blank">Ir para o Google</a>
+  </div>
+</div>
+
+<!-- P -->
+<div class="card">
+  <h2>&lt;p&gt;</h2>
+  <p>Um parágrafo de texto.</p>
+  <div class="example-box">
+    <p>Este é um parágrafo de exemplo.</p>
+  </div>
+</div>
+
+<!-- HEADERS -->
+<div class="card">
+  <h2>&lt;h1&gt; até &lt;h6&gt;</h2>
+  <p>Títulos com níveis diferentes de importância.</p>
+  <div class="example-box">
+    <h1>Título H1</h1>
+    <h2>Título H2</h2>
+    <h3>Título H3</h3>
+    <h4>Título H4</h4>
+    <h5>Título H5</h5>
+    <h6>Título H6</h6>
+  </div>
+</div>
+
+<!-- LISTA -->
+<div class="card">
+  <h2>&lt;ul&gt; e &lt;li&gt;</h2>
+  <p>Listas não ordenadas.</p>
+  <div class="example-box">
+    <ul>
+      <li>Item da lista 1</li>
+      <li>Item da lista 2</li>
+      <li>Item da lista 3</li>
+    </ul>
+  </div>
+</div>
+
+<!-- BUTTON -->
+<div class="card">
+  <h2>&lt;button&gt;</h2>
+  <p>Um botão clicável.</p>
+  <div class="example-box">
+    <button>Clique aqui</button>
+  </div>
+</div>
+
+<!-- INPUT -->
+<div class="card">
+  <h2>&lt;input&gt;</h2>
+  <p>Campo de entrada de dados.</p>
+  <div class="example-box">
+    <input type="text" placeholder="Digite algo..." />
+    <br><br>
+    <input type="number" value="42" />
+    <br><br>
+    <input type="color" value="#ff0000" />
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="card">
+  <h2>&lt;form&gt;</h2>
+  <p>Agrupa inputs e permite envio de dados.</p>
+  <div class="example-box">
+    <form>
+      <label>Nome:</label>
+      <input type="text" />
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+</div>
+
+<!-- LABEL -->
+<div class="card">
+  <h2>&lt;label&gt;</h2>
+  <p>Rótulo para associar com um input.</p>
+  <div class="example-box">
+    <label for="campo-exemplo">Digite algo:</label>
+    <input id="campo-exemplo" type="text" />
+  </div>
+</div>
+
+</body>
+</html>
+```
+
 ### **Atributos comuns**  
 | Atributo | Uso |
 |----------|-----|
