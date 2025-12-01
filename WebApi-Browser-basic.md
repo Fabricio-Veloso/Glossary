@@ -33,7 +33,7 @@ input.files // FileList
 ```
 FileList é similar a um array e contém objetos File.
 Cada File inclui:
-
+```js
     nome
 
     tamanho
