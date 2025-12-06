@@ -58,7 +58,6 @@ local greet = function(name)
 end
 ```
 
-## Variables: Functions
 
 ```lua
 local higher_order = function(value)
@@ -71,13 +70,10 @@ local add_one = higher_order(1)
 print("add_one(2) -> ", add_one(2))
 ```
 
-## Variables: Tables
-
 Effectively, Lua's only data structure.
 
 - Same structure is used for maps & lists
 
-## Variables: Tables
 
 As a list...
 
@@ -86,9 +82,6 @@ local list = { "first", 2, false, function() print("Fourth!") end }
 print("Yup, 1-indexed:", list[1])
 print("Fourth is 4...:", list[4]())
 ```
-
-## Variables: Tables
-
 As a map...
 
 ```lua
@@ -110,6 +103,35 @@ print("function() end: ", t[function() end])
 
 ## Control Flow: `for`
 
+
+### `ipairs`
+
+* Iterador que percorre **somente índices numéricos sequenciais** começando em `1`.
+* Para automaticamente ao encontrar um valor `nil`.
+* Útil para **listas** (arrays).
+* Garante **ordem previsível**.
+
+### `pairs`
+
+* Iterador genérico que percorre **todas as chaves** de uma tabela.
+* **Não garante ordem**.
+* Usado para dicionários, maps, objetos arbitrários.
+
+### Uso de `_` como variável descartável
+
+* `_` é **uma variável comum**, sem comportamento especial da linguagem.
+* Usado por **convenção** quando você quer receber um valor mas **não precisa** dele.
+* Em loops como:
+
+```
+for _, value in ipairs(tabela) do
+...
+end
+```
+
+… `_` indica ao leitor: **“ignora o valor desta variável, não é relevante aqui”**.
+
+---
 ```lua
 local favorite_accounts = { "teej_dv", "ThePrimeagen", "terminaldotshop" }
 for index = 1, #favorite_accounts do
@@ -134,14 +156,6 @@ Doesn't Print Anything - the "length" of the array is 0.
 
 We aren't using it as an array, we're using it as a map!
 
-## Control Flow: `for`
-
-```lua
-local reading_scores = { teej_dv = 9.5, ThePrimeagen = "N/A" }
-for key, value in pairs(reading_scores) do
-  print(key, value)
-end
-```
 
 ## Control Flow: `if`
 
@@ -166,8 +180,40 @@ action({})
 
 ## Modules
 
-There isn't anything special about modules.
-Modules are just files!
+### Quando `init.lua` é necessário
+
+* Apenas quando você quer que **a pasta inteira seja tratada como módulo**, permitindo:
+
+```
+require("nome_da_pasta")
+```
+
+* Nesse caso, Lua procura automaticamente por:
+
+```
+nome_da_pasta/init.lua
+```
+
+Se não existir, o `require` falha.
+
+### Quando `init.lua` NÃO é necessário
+
+* Quando você importa **diretamente um arquivo específico**, como:
+
+```
+require("make.py-make.Identifyers-python.identify-django")
+```
+
+* Pastas intermediárias **não precisam ter init.lua**.
+* Você pode importar arquivos de **qualquer nível**, desde que estejam dentro do `runtimepath`.
+
+### Organização recomendada
+
+* Use `init.lua` apenas quando quiser:
+
+  * Agregar várias funções em uma interface limpa.
+  * Criar um módulo “raiz” para facilitar imports.
+* Para arquivos isolados, importe direto sem complicar a estrutura.
 
 ```lua
 -- foo.lua
