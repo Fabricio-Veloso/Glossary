@@ -181,6 +181,22 @@ return M
 local foo = require('foo')
 foo.cool_function()
 ```
+## Modules can export only the main Functions
+- The secondary ones can't be used by the module that requires the exported module, but can use the principal flawlesly.
+
+```lua
+local M = {}
+
+local function interna()
+  print("sou privada")
+end
+
+function M.publica()
+  interna()
+end
+
+return M
+```
 
 ## Functions: Multiple Returns
 
