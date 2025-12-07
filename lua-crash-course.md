@@ -570,3 +570,79 @@ Subtração 10 - 4 = 6
 - init.lua transforma pastas em pacotes reutilizáveis.
 - Você pode usar debug.getinfo para ajustar caminhos dinamicamente.
 - Sempre verifique o package.path se o require não encontrar o módulo.
+# vim dev tips
+```lua
+## seach paths
+local files = vim.fn.globpath(vim.fn.stdpath("config") .. "/lua/make/make-folders/py-make/identifyers-python", "*.lua", false, true)
+ ```
+ - isso retorna algo como:
+\´´´
+
+## globpath(path, expr, nosuf?, list?, allinks?)
+
+- Exemplo usado:
+
+\´´´
+local files = vim.fn.globpath(
+vim.fn.stdpath("config") .. "/lua/make/make-folders/py-make/identifyers-python",
+"*.lua",
+false,
+true
+)
+\´´´
+
+#### Explicação dos parâmetros
+##### 1) path
+
+Diretório (ou lista de diretórios separados por vírgula) onde a busca será feita.
+
+No exemplo:
+```lua
+vim.fn.stdpath("config") .. "/lua/make/make-folders/py-make/identifyers-python"
+```
+Isso vira algo como:
+
+```lua
+~/.config/nvim/lua/make/make-folders/py-make/identifyers-python
+```
+
+##### 2) expr
+
+Padrão de busca (globbing).
+
+    No exemplo: "*.lua" → todos os arquivos .lua.
+
+#### 3) nosuf
+
+Controla o uso das opções 'suffixes' e 'wildignore'.
+
+- false → considere essas opções (comportamento comum)
+
+- true → ignore 'suffixes' e 'wildignore'
+
+- Normalmente você deixa false.
+
+##### 4) list
+
+- Define o formato do retorno:
+
+- false → retorna string com caminhos separados por \n
+
+- true → retorna lista Lua ({ "a.lua", "b.lua", ... })
+
+- No exemplo: true → retorno é uma lista de arquivos.
+
+#### 5) allinks
+
+Mesmo papel do parâmetro em glob().
+Controla se links simbólicos devem ser seguidos. Não usado no exemplo.
+
+#### Por fim o resultado seria:
+```lua
+{
+    "/caminho/a.lua",
+    "/caminho/b.lua",
+    "/caminho/c.lua",
+}
+
+```
