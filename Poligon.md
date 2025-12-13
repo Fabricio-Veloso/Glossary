@@ -1,6 +1,14 @@
 # Glossário de Polygon
+
+## Sumário:
+
+1. Tópicos gerais:
+2. Transição Web2 → Web3
+3. 📚 Como estudar isso de forma eficaz (método, não links):
+
 ---
-## 🌍 1) O que é uma sidechain?
+# Tópicos gerais:
+## 🌍 1) Tópicos gerais: O que é uma sidechain?
 - É uma blockchain separada, com validadores próprios, mas que:
   - se conecta a uma blockchain maior (ex.: Ethereum)
   - permite mover ativos entre elas (via bridges)
@@ -13,7 +21,7 @@
 
 ---
 
-## 🧱 2) O que são appchains?
+## 🧱 2) Tópicos gerais: O que são appchains?
 - Blockchain criada exclusivamente para um app ou grupo de apps
 - Características:
   - regras próprias  
@@ -25,7 +33,7 @@
 
 ---
 
-## 🧩 3) O que são SDKs neste contexto?
+## 🧩 3) Tópicos gerais: O que são SDKs neste contexto?
 - SDK = Software Development Kit
 - No mundo blockchain:
   - ferramentas, templates e contratos-base para criar blockchains ou smart contracts
@@ -34,7 +42,7 @@
 
 ---
 
-## 🔄 4) O que é compatibilidade EVM?
+## 🔄 4) Tópicos gerais: O que é compatibilidade EVM?
 - EVM = Ethereum Virtual Machine
 - Uma rede compatível com EVM permite:
   - escrever em Solidity/Vyper
@@ -45,7 +53,7 @@
 
 ---
 
-## 🧑‍💻 5) Solidity e Vyper são linguagens completas?
+## 🧑‍💻 5) Tópicos gerais: Solidity e Vyper são linguagens completas?
 - Sim, mas com restrições:
   - ambiente totalmente determinístico  
   - não acessam rede, arquivos ou SO  
@@ -56,7 +64,7 @@
 
 ---
 
-## 🏗️ 6) Diferença entre infra e infra on-chain
+## 🏗️ 6) Tópicos gerais: Diferença entre infra e infra on-chain
 ### Infra on-chain:
 - contratos
 - tokens
@@ -75,7 +83,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🔌 7) O que são nodes / RPCs?
+## 🔌 7) Tópicos gerais: O que são nodes / RPCs?
 - **Node:**  
   - computador rodando o software da blockchain  
   - mantém cópia da rede e valida transações  
@@ -87,7 +95,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🔁 8) O que são relayers e bridges?
+## 🔁 8) Tópicos gerais: O que são relayers e bridges?
 - **Bridge:** conexão entre blockchains (ex.: Ethereum ⇄ Polygon)  
   - bloqueia token na A  
   - cria representação na B  
@@ -100,7 +108,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 💰 9) O que é MATIC?
+## 💰 9) Tópicos gerais: O que é MATIC?
 - Era o token nativo da Polygon PoS  
 - Hoje, migrado para **POL**  
 - Funções:
@@ -111,7 +119,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🏦 10) O que é escrow?
+## 🏦 10) Tópicos gerais: O que é escrow?
 - “Cofre inteligente” com regras para liberar fundos  
 - Exs.:
   - libera dinheiro quando objetivo for atingido  
@@ -121,7 +129,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🧬 11) O que é um contrato “Factory”?
+## 🧬 11) Tópicos gerais: O que é um contrato “Factory”?
 - Contrato que cria outros contratos
 - Motivos:
   - padronizar deploys  
@@ -133,7 +141,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🪙 12) O que é um token ERC-20?
+## 🪙 12) Tópicos gerais: O que é um token ERC-20?
 - Padrão de tokens fungíveis no Ethereum
 - Deve ter:
   - `balanceOf`
@@ -145,7 +153,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🗳️ 13) O que são módulos de votação (governance modules)?
+## 🗳️ 13) Tópicos gerais: O que são módulos de votação (governance modules)?
 - **Governor:** cria propostas e votações  
 - **Timelock:** executa decisões após X horas/dias  
 - **Voting Token:** define peso de voto  
@@ -153,7 +161,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🔍 14) O que são serviços off-chain? Eles podem ser manipulados?
+## 🔍 14) Tópicos gerais: O que são serviços off-chain? Eles podem ser manipulados?
 ### Exemplos:
 - The Graph (indexador)
 - Servidores da empresa
@@ -170,7 +178,7 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 ---
 
-## 🛡️ 15) O que é usar o OpenZeppelin para padrões?
+## 🛡️ 15) Tópicos gerais: O que é usar o OpenZeppelin para padrões?
 - Biblioteca com contratos auditados:
   - ERC-20  
   - ERC-721  
@@ -183,37 +191,280 @@ Porque blockchain é lenta, cara e limitada em memória.
 - Equivale a usar classes-base no Django em vez de escrever tudo do zero
 
 ---
+# Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
+
+## 🧠 CAMADA 1 — Mudar o modelo mental (fundamental)
+
+### Transição Web2 → Web3: 🔴 Diferença central entre Web2 e Web3
+
+**Web2**
+- código pode mudar
+- bugs são corrigíveis
+- banco de dados é mutável
+- acesso é controlado por uma entidade
+
+**Web3**
+- contratos não podem mudar (na prática)
+- bugs custam dinheiro real
+- estado é público e imutável
+- depois do deploy, ninguém “manda”
+
+👉 Isso muda completamente:
+- arquitetura
+- estratégia de testes
+- responsabilidade
+- necessidade de paranoia saudável
+
+---
+
+### Transição Web2 → Web3: 📦 O que realmente é um smart contract
+
+- Um smart contract **não é um backend**
+- Ele é:
+  - um programa determinístico
+  - rodando em milhares de máquinas
+  - com custo por instrução (gas)
+  - sem acesso externo
+  - sem IO
+  - sem relógio confiável
+  - sem threads
+  - sem exceptions no sentido tradicional
+
+**Analogia correta:**
+- Uma *stored procedure*:
+  - distribuída
+  - imutável
+  - pública
+  - paga por uso
+  - irreversível
+
+---
+
+## Transição Web2 → Web3: 🧩 CAMADA 2 — Base técnica mínima (para não ficar boiando)
+
+Aqui o objetivo não é virar especialista, mas ganhar **vocabulário operacional**.
+
+---
+
+### Transição Web2 → Web3: ⚙️ 1️⃣ EVM de verdade
+
+Estudar:
+- o que é a EVM
+- stack machine
+- gas
+- storage vs memory vs calldata
+- opcodes (conceito, não decorar)
+
+Você precisa entender por que:
+- loops são perigosos
+- arrays grandes são caros
+- leitura e escrita têm custos diferentes
+
+👉 Isso evita escrever contratos ruins sem perceber.
+
+---
+
+### Transição Web2 → Web3: 🧑‍💻 2️⃣ Solidity como linguagem restrita
+
+Solidity **não é JavaScript**.
+
+É uma linguagem:
+- com tipagem forte
+- focada em estado persistente
+- com semântica própria de memória
+- cheia de riscos específicos
+
+Conceitos essenciais:
+- `msg.sender`, `msg.value`
+- `call`, `delegatecall`
+- modifiers
+- events
+- visibilidade (`public`, `external`, `internal`, `private`)
+- herança (muito usada)
+- riscos clássicos:
+  - reentrancy
+  - overflow
+  - underflow
+  - storage collision
+
+---
+
+### Transição Web2 → Web3: 📜 3️⃣ ERCs como protocolos sociais
+
+ERCs **não são bibliotecas**.
+São acordos sociais codificados.
+
+Estudar:
+- ERC-20
+- ERC-721
+- allowance model
+- snapshots
+
+Entender:
+- por que eles existem
+- quais ataques exploraram implementações ruins
+- como pequenos desvios do padrão causam perdas reais
+
+---
+
+## Transição Web2 → Web3: 🛠️ CAMADA 3 — Toolchain (onde tudo começa a fazer sentido)
+
+Aqui a maioria se perde — organização é crucial.
+
+---
+
+### Transição Web2 → Web3: 🧪 Hardhat (ou Foundry)
+
+É o seu:
+- ambiente local
+- test runner
+- deployer
+- debugger
+
+Você vai:
+- rodar blockchain local
+- simular ataques
+- fazer fork da mainnet
+- escrever testes antes do deploy
+
+👉 Em Web3, quem não testa, **perde dinheiro**.
+
+---
+
+### Transição Web2 → Web3: 🔌 ethers.js
+
+É:
+- a ponte entre frontend e contratos
+- base de scripts de deploy
+- usada em automações off-chain
+
+Você precisa entender:
+- como instanciar contratos
+- como chamar funções
+- diferença entre:
+  - `call`
+  - `sendTransaction`
+
+---
+
+### Transição Web2 → Web3: 🌐 RPC + Nodes (na prática)
+
+Você **não fala com a blockchain**.
+Você fala com um **node via RPC**.
+
+Infura / Alchemy:
+- abstraem infraestrutura pesada
+- são pontos de confiança
+
+Você precisa saber:
+- quando confiar
+- quando rodar node próprio
+- quando usar múltiplos providers
+
+---
+
+## Transição Web2 → Web3: 🏗️ CAMADA 4 — Arquitetura de projetos reais
+
+Aqui está o objetivo final.
+
+---
+
+### Transição Web2 → Web3: 🧱 Padrões de arquitetura on-chain
+
+- Factory contracts
+- Escrow por projeto
+- Governor + Timelock
+- Multisig admin
+- Upgradeability vs Imutabilidade
+
+Aqui entram decisões:
+- técnicas
+- sociais
+- éticas
+
+**Exemplo:**
+- permitir upgrade → menos risco técnico
+- não permitir upgrade → mais confiança social
+
+---
+
+### Transição Web2 → Web3: 🧠 Governança ≠ CRUD
+
+Governança envolve:
+- poder
+- incentivos
+- ataques econômicos
+
+Você precisa entender:
+- quorum
+- snapshot
+- time delay
+- stake vs vote
+
+E principalmente:
+- como pessoas abusam do sistema
+- mesmo quando o código está “correto”
+
+---
+
+### Transição Web2 → Web3: 🔍 Off-chain sem trair o on-chain
+
+Serviços off-chain:
+- leem
+- indexam
+- exibem
+- notificam
+
+Eles **não decidem nada crítico**.
+
+👉 Decisão financeira **sempre on-chain**.
+
+---
+# 📚 Como estudar isso de forma eficaz (método, não links):
+### Fase 1 — Fundamentos práticos
+
+- Ler docs Ethereum + Polygon
+
+- Escrever contratos simples
+
+- Quebrar eles de propósito
+
+- Entender erros comuns
+
+### Fase 2 — Segurança
+
+- Estudar hacks reais
+
+- Entender por que aconteceram
+
+- Simular ataques em testes
+
+### Fase 3 — Mini-projeto
+
+- Escrow simples
+
+- Token ERC-20
+
+- Factory
+
+- Frontend mínimo
+
+- Deploy em testnet
+
+### Fase 4 — Refinamento
+
+- Melhorar arquitetura
+
+- Adicionar governança
+
+- Escrever README técnico
+
+- Pensar como auditor
+---
 <!-- TODO: Perguntas que preciso responder-->
+# Perguntas que preciso responder
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+---
 
 
 
@@ -227,6 +478,8 @@ Porque blockchain é lenta, cara e limitada em memória.
 
 
 <!-- TODO: coisas para conferir e fazer perguntas -->
+
+# Coisas para conferir e fazer perguntas
 6) Fluxo de desenvolvimento prático (passo a passo para um PoC)
 
 Design de contratos (diagramas + invariants): Escrow, ProposalFactory, VotingToken, Governance.
