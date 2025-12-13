@@ -421,17 +421,194 @@ Eles **não decidem nada crítico**.
 
 ---
 # 📚 Como estudar isso de forma eficaz (método, não links):
-### Fase 1 — Fundamentos práticos
+## Fase 1 — Fundamentos práticos
 
-- Ler docs Ethereum + Polygon
+### Ler docs Ethereum + Polygon
 
+## 🧭 Guia de Estudos — Base Técnica Web3 (Ethereum + Polygon)
+
+> Objetivo:
+> Construir base técnica sólida para compreender e desenvolver projetos Web3
+> (smart contracts, arquitetura on-chain/off-chain, governança e segurança),
+> partindo do zero prático até um mini-projeto com padrões da indústria.
+
+---
+
+## 🔴 BLOCO 1 — Fundamentos de Blockchain & Ethereum (Obrigatório)
+
+### Conceitos gerais
+- [ ] O que é uma blockchain (revisão técnica)
+- [ ] Diferença entre Web2 e Web3 (modelo mental)
+- [ ] Imutabilidade e consenso
+- [ ] Estado global da blockchain
+
+### Contas e transações
+- [ ] EOA (Externally Owned Accounts)
+- [ ] Contract Accounts
+- [ ] Transações:
+  - [ ] nonce
+  - [ ] gas
+  - [ ] gas limit
+  - [ ] gas price / base fee
+- [ ] O que acontece quando uma transação é enviada
+
+🎯 Objetivo do bloco:
+> Conseguir explicar, passo a passo, o que acontece quando alguém chama uma função
+> de um contrato na blockchain.
+
+---
+
+## 🔴 BLOCO 2 — Smart Contracts (Modelo Mental Correto)
+
+- [ ] O que é um smart contract (tecnicamente)
+- [ ] Diferença entre:
+  - [ ] call (leitura)
+  - [ ] transaction (escrita)
+- [ ] Determinismo
+- [ ] Por que contratos não:
+  - [ ] acessam internet
+  - [ ] acessam arquivos
+  - [ ] acessam tempo real confiável
+- [ ] Como contratos chamam outros contratos
+- [ ] Eventos (logs) e seu papel
+
+🎯 Objetivo do bloco:
+> Entender **limitações e garantias**, não apenas possibilidades.
+
+---
+
+## 🔴 BLOCO 3 — EVM (Ethereum Virtual Machine)
+
+### Funcionamento interno (nível correto)
+- [ ] O que é a EVM
+- [ ] Máquina baseada em stack (conceito)
+- [ ] Execução determinística
+- [ ] Gas como custo computacional
+
+### Memória e armazenamento
+- [ ] `storage` (persistente)
+- [ ] `memory` (temporário)
+- [ ] `calldata` (somente leitura)
+- [ ] Diferença de custo entre leitura e escrita
+
+### Armadilhas comuns
+- [ ] Por que loops são perigosos
+- [ ] Por que arrays grandes custam caro
+- [ ] O que significa “bricking” um contrato
+
+🎯 Objetivo do bloco:
+> Não escrever código ineficiente ou perigoso sem perceber.
+
+---
+
+## 🔴 BLOCO 4 — Solidity (Essencial antes de codar)
+
+### Base da linguagem
+- [ ] Tipos básicos
+- [ ] Funções
+- [ ] Construtor
+- [ ] Visibilidade:
+  - [ ] public
+  - [ ] external
+  - [ ] internal
+  - [ ] private
+
+### Contexto de execução
+- [ ] `msg.sender`
+- [ ] `msg.value`
+- [ ] `address(this)`
+- [ ] `block.number` (conceito, cuidado)
+
+### Controle e segurança básica
+- [ ] `require`
+- [ ] `revert`
+- [ ] `error`
+- [ ] Modifiers
+- [ ] Events
+
+🚫 Fora de escopo por enquanto:
+- Inline assembly
+- Yul
+- ABI encoding profundo
+- Otimizações avançadas
+
+🎯 Objetivo do bloco:
+> Ser capaz de ler e escrever contratos simples com clareza.
+
+---
+
+## 🔴 BLOCO 5 — Tokens & Padrões (ERCs)
+
+### Conceitos
+- [ ] O que é um token fungível
+- [ ] Por que tokens são contratos
+- [ ] Diferença entre token e moeda nativa
+
+### ERC-20
+- [ ] O que é o padrão ERC-20
+- [ ] Funções principais:
+  - [ ] balanceOf
+  - [ ] transfer
+  - [ ] approve
+  - [ ] transferFrom
+- [ ] Allowance model
+- [ ] Riscos e armadilhas comuns
+
+🎯 Objetivo do bloco:
+> Entender tokens como **infraestrutura padrão**, não como “moedas”.
+
+---
+
+## 🔴 BLOCO 6 — Polygon (Visão Geral, sem aprofundar)
+
+- [ ] O que é a Polygon
+- [ ] Polygon PoS (sidechain)
+- [ ] Diferença entre Polygon e Ethereum
+- [ ] Taxas (gas)
+- [ ] MATIC / POL
+- [ ] Bridge (conceito geral)
+
+🚫 Ignorar por enquanto:
+- zkEVM
+- CDK
+- Appchains
+- Soluções enterprise
+
+🎯 Objetivo do bloco:
+> Saber **onde** você está deployando e **por que** usar Polygon.
+
+---
+
+## 🔴 BLOCO 7 — Infraestrutura Básica (Conceitual)
+
+- [ ] O que é um node
+- [ ] O que é RPC
+- [ ] O papel de Infura / Alchemy / QuickNode
+- [ ] Diferença entre rodar node próprio e usar provider
+- [ ] O que são serviços off-chain
+- [ ] O que eles **podem** e **não podem** fazer
+
+🎯 Objetivo do bloco:
+> Entender a fronteira entre on-chain e off-chain.
+
+---
+
+⚠️ Só avançar depois de completar os blocos anteriores.
 - Escrever contratos simples
-
+- [ ] Hardhat / Foundry
+- [ ] Testes de smart contracts
+- [ ] Primeiro contrato simples
+- [ ] Deploy em testnet
+- [ ] Frontend mínimo
+- [ ] Escrow básico
+- [ ] Factory contracts
+- [ ] Governança
 - Quebrar eles de propósito
 
 - Entender erros comuns
 
 ### Fase 2 — Segurança
+- [ ] Segurança avançada
 
 - Estudar hacks reais
 
