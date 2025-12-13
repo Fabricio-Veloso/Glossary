@@ -2,10 +2,10 @@
 
 ## Sumário:
 
-1. Tópicos gerais:
-2. Transição Web2 → Web3
-3. 📚 Como estudar isso de forma eficaz (método, não links):
-
+1. Tópicos gerais.
+2. Transição Web2 → Web3.
+3. 📚 Como estudar isso de forma eficaz (método, não links).
+4. 📚 Documentação essencial — Como usar sem se perder.
 ---
 # Tópicos gerais:
 ## 🌍 1) Tópicos gerais: O que é uma sidechain?
@@ -637,6 +637,134 @@ Eles **não decidem nada crítico**.
 - Escrever README técnico
 
 - Pensar como auditor
+---
+# 📚 Documentação essencial — Como usar sem se perder
+
+## 🔹 1) Polygon Docs  
+https://docs.polygon.technology/
+
+👉 **Bom, mas perigoso para iniciantes técnicos**
+
+Esse conjunto de docs é:
+- extremamente completo
+- muito amplo
+- escrito para vários perfis:
+  - infraestrutura
+  - zk
+  - DeFi
+  - enterprise
+
+📌 Use para:
+- entender o ecossistema Polygon
+- saber o que existe
+- diferenciar:
+  - Polygon PoS
+  - zkEVM
+  - CDK
+  - bridges
+
+🚫 Não use como sequência de aprendizado linear  
+Esses docs **não foram feitos para isso**.
+
+---
+
+## 🔹 2) Ethereum Developers Docs  
+https://ethereum.org/developers/docs/
+
+👉 **Esse é o seu “docs raiz”**
+
+- Melhor material conceitual-técnico existente hoje
+- Base real de entendimento do ecossistema
+
+📌 Use para:
+- entender a EVM
+- entender contas, transações e gas
+- entender smart contracts como sistema
+
+👍 É estruturado, mas:
+- não é didático no sentido tradicional
+- funciona como **referência profunda**
+
+---
+
+## 🔹 3) Solidity Documentation  
+https://docs.soliditylang.org/en/v0.8.31/
+
+👉 **Manual da linguagem, não curso**
+
+📌 Use para:
+- consultar sintaxe
+- entender:
+  - tipos
+  - visibilidade
+  - memória
+- confirmar comportamentos específicos
+
+🚫 Não tente “aprender Solidity” lendo isso do começo ao fim  
+Vai ser improdutivo e frustrante.
+
+---
+
+## 🔹 4) Ethereum Development Docs (eth-develop)  
+https://eth-develop.readthedocs.io/
+
+👉 **Subestimado e bom**
+
+Apesar de mais antigo:
+- é mais direto
+- tem menos marketing
+- foca mais em engenharia “raiz”
+
+📌 Bom para:
+- criar base mental inicial
+- entender conceitos sem ruído
+
+---
+
+## 🔑 2️⃣ Documentações adicionais recomendadas
+
+Essas complementam muito bem as oficiais.
+
+---
+
+## 🔑 A) OpenZeppelin Learn  
+https://docs.openzeppelin.com/learn/
+
+👉 **Isso aqui é ouro**
+
+Por quê?
+- conecta Solidity + segurança + padrões
+- explica *por que* as coisas são feitas
+- mostra armadilhas reais de produção
+
+📌 Se você ler apenas **um material além dos oficiais**, que seja este.
+
+---
+
+## 🔑 B) Ethereum Yellow Paper (opcional, seletivo)
+
+👉 Não é para ler inteiro
+
+Use para:
+- entender o papel formal da EVM
+- saber que existe uma especificação matemática da rede
+
+📌 Serve para consulta pontual, não estudo linear.
+
+---
+
+## 🔑 C) Hardhat Docs (mais tarde)  
+https://hardhat.org/docs
+
+👉 **Não agora**
+
+📌 Use somente quando:
+- você estiver prestes a escrever contratos
+- já entender EVM + Solidity básico
+
+Antes disso, vira ruído.
+
+---
 ---
 <!-- TODO: Perguntas que preciso responder-->
 # Perguntas que preciso responder
