@@ -190,6 +190,185 @@ Porque blockchain é lenta, cara e limitada em memória.
   - Upgrades  
 - Equivale a usar classes-base no Django em vez de escrever tudo do zero
 
+# Tópicos gerais:🔐 Proof of Stake, Incentivos e Segurança no Ethereum
+
+## Tópicos gerais:🧠 Proof of Stake (PoS)
+
+- Mecanismo de consenso onde a segurança da rede é garantida por **capital em risco** (ETH em stake)
+- Substitui o gasto energético do Proof of Work
+- Validadores:
+  - bloqueiam ETH para participar
+  - são recompensados por comportamento correto
+  - são punidos por comportamento malicioso ou incorreto
+
+👉 Segurança vem de risco econômico, não de confiança.
+
+---
+
+## Tópicos gerais:💰 Stake
+
+- Quantidade de ETH bloqueada por um validador para participar do consenso
+- No Ethereum:
+  - **32 ETH = 1 validador**
+- O stake:
+  - **não mede mérito**
+  - **não mede reputação**
+  - mede exclusivamente **risco econômico**
+
+---
+
+## Tópicos gerais:👤 Validador
+
+Participante do protocolo que:
+- propõe blocos (quando selecionado)
+- valida blocos propostos por outros
+- emite **attestations** (votos)
+
+Importante:
+- o validador não decide “o que é certo”
+- ele apenas verifica se **regras objetivas** foram seguidas
+
+---
+
+## Tópicos gerais:🧾 Attestation
+
+- Assinatura criptográfica emitida por um validador indicando que:
+  - um bloco é válido segundo as regras do protocolo
+  - aquele bloco deve ser considerado na escolha da cadeia
+- Cada attestation tem peso proporcional ao ETH em stake do validador
+
+---
+
+## Tópicos gerais:⚖️ Peso de voto (Stake-weighted voting)
+
+No PoS do Ethereum:
+- não existe “1 pessoa = 1 voto”
+- votos são ponderados pelo ETH em stake
+- mais ETH corretamente bloqueado → maior peso no consenso
+
+👉 O consenso reflete **apoio econômico**, não opinião.
+
+---
+
+## Tópicos gerais:🌿 Fork-choice rule
+
+- Algoritmo que decide qual cadeia seguir quando existem múltiplos forks válidos
+- No Ethereum:
+  - soma o peso das attestations
+  - escolhe o fork com maior apoio econômico
+
+Importante:
+- o fork-choice é **dinâmico**
+- pode mudar conforme novas attestations chegam
+
+---
+
+## Tópicos gerais:🔒 Finality (Casper FFG)
+
+- Mecanismo que define quando um bloco se torna **irreversível**
+- Quando um bloco é finalizado:
+  - revertê-lo exige violar regras explícitas
+  - implica perda massiva de ETH em stake
+  - o ataque é detectável e punível
+
+👉 Finality transforma consenso probabilístico em **segurança forte**.
+
+---
+
+## Tópicos gerais:✂️ Slashing
+
+- Penalidade severa aplicada quando um validador:
+  - vota de forma conflitante (double vote)
+  - apoia forks incompatíveis
+  - propõe ou valida blocos inválidos de forma comprovável
+
+Consequências:
+- parte do ETH em stake é destruída
+- em casos graves, o validador é expulso do conjunto
+
+👉 Slashing é o principal mecanismo de dissuasão no PoS.
+
+---
+
+## Tópicos gerais:❌ “Votar errado” (no contexto do PoS)
+
+Não significa:
+- julgar transações “boas” ou “más”
+
+Significa:
+- violar regras formais do consenso
+- assinar mensagens conflitantes
+- apoiar blocos tecnicamente inválidos
+
+👉 É um erro **objetivo e verificável**, não interpretativo.
+
+---
+
+## Tópicos gerais:💣 Risco econômico
+
+No PoS:
+- segurança não vem de confiança
+- vem de risco financeiro explícito
+
+O validador:
+- ganha pequenas recompensas por agir corretamente
+- corre risco de grandes perdas ao tentar desviar
+
+👉 O sistema assume **atores racionais**, não atores honestos.
+
+---
+
+## Tópicos gerais:🎯 Incentive Design (Design de Incentivos)
+
+- Arquitetura que alinha:
+  - comportamento individual
+  - segurança coletiva da rede
+
+No Ethereum PoS:
+- seguir as regras é economicamente racional
+- atacar a rede é economicamente autodestrutivo
+
+---
+
+## Tópicos gerais:🔄 PoW vs PoS — Comparação de Segurança
+
+### Proof of Work (PoW)
+- custo: energia + hardware
+- ataque: gastar mais eletricidade
+- capital pode ser reaproveitado fora da rede
+
+### Proof of Stake (PoS)
+- custo: capital bloqueado
+- ataque: perder o próprio ETH
+- capital está preso e visível on-chain
+
+👉 Ambos convertem segurança em custo, mas por mecanismos diferentes.
+
+---
+
+## Tópicos gerais:🏦 Concentração de poder no PoS
+
+- PoS favorece quem tem mais capital:
+  - mais ETH → mais validadores → mais peso
+
+Freios existentes:
+- limite técnico por validador (32 ETH)
+- slashing escala com o capital
+- pressão social e governança fora do protocolo
+
+👉 O protocolo não garante descentralização econômica, apenas a torna mensurável.
+
+---
+
+## Tópicos gerais:🤝 Confiança vs Risco
+
+- O Ethereum PoS:
+  - não exige confiar nos validadores
+  - exige apenas que ajam racionalmente sob risco financeiro
+
+👉 Confiança social é substituída por **incentivos econômicos explícitos**.
+
+---
 ---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
@@ -437,10 +616,10 @@ Eles **não decidem nada crítico**.
 ## 🔴 BLOCO 1 — Fundamentos de Blockchain & Ethereum (Obrigatório)
 
 ### Conceitos gerais
-- [ ] O que é uma blockchain (revisão técnica)
-- [ ] Diferença entre Web2 e Web3 (modelo mental)
-- [ ] Imutabilidade e consenso
-- [ ] Estado global da blockchain
+- [x] O que é uma blockchain (revisão técnica)
+- [x] Diferença entre Web2 e Web3 (modelo mental)
+- [x] Imutabilidade e consenso
+- [x] Estado global da blockchain
 
 ### Contas e transações
 - [ ] EOA (Externally Owned Accounts)
