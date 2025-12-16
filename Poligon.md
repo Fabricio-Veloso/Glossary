@@ -845,17 +845,93 @@ Eles **não decidem nada crítico**.
 ### Contas e transações
 - [x] EOA (Externally Owned Accounts)
 - [x] Contract Accounts
-- [ ] Transações:
+- [x] Transações:
   - [x] nonce
   - [x] gas
-  - [ ] gas limit
-  - [ ] gas price / base fee
-- [ ] O que acontece quando uma transação é enviada
+  - [x] gas limit
+  - [x] gas price / base fee
+- [x] O que acontece quando uma transação é enviada
 
 🎯 Objetivo do bloco:
 > Conseguir explicar, passo a passo, o que acontece quando alguém chama uma função
 > de um contrato na blockchain.
 
+## Chamada de funções em smart contracts (fluxo completo)
+
+### Visão geral
+Quando alguém “chama uma função” de um smart contract no Ethereum, na prática essa pessoa está **enviando uma transação para o endereço do contrato**, contendo no campo `data` a chamada codificada da função.  
+O contrato **não reage automaticamente** a essa chamada; seu código só é executado quando a transação é incluída e executada dentro de um bloco.
+
+---
+
+### Passo a passo detalhado (fluxo técnico)
+
+1. **Preparação off-chain**
+   O usuário interage com uma interface off-chain (wallet, dApp, script, etc.).  
+   A função do contrato e seus parâmetros são codificados usando **ABI encoding** e colocados no campo `data` da transação.
+
+2. **Criação da transação**
+   A transação contém, entre outros campos:
+   - `from`: endereço EOA do usuário
+   - `to`: endereço do smart contract
+   - `value`: ETH enviado (opcional)
+   - `data`: chamada da função codificada
+   - `nonce`, `gasLimit`, `maxFeePerGas`, etc.
+
+3. **Assinatura**
+   A transação é:
+   - codificada (RLP)
+   - hashada
+   - assinada com a chave privada do emissor  
+   O resultado é a **raw transaction** (bytes representados em hexadecimal).
+
+4. **Envio ao nó RPC**
+   A raw transaction é enviada via JSON-RPC (`eth_sendRawTransaction`) a um nó Ethereum.  
+   O nó verifica:
+   - assinatura
+   - nonce
+   - saldo suficiente para gas e value  
+   Nenhum código de contrato é executado aqui.
+
+5. **Mempool**
+   A transação válida entra no mempool.  
+   Neste estágio:
+   - o estado da blockchain não muda
+   - o contrato não é executado
+   - a transação está apenas aguardando inclusão em um bloco
+
+6. **Seleção pelo validador**
+   Um validador escolhe transações do mempool (geralmente priorizando taxas mais altas) para montar um novo bloco.
+
+7. **Execução da transação**
+   Durante a proposição do bloco, o validador:
+   - executa a transação na EVM
+   - chama o código do contrato indicado em `to`
+   - executa a função especificada em `data`
+   - consome gas
+   - lê e escreve no storage do contrato
+   - gera logs e eventos  
+   Aqui o contrato “existe” e seu código é efetivamente executado.
+
+8. **Resultado da execução**
+   - Se a execução termina com sucesso: o estado global é atualizado.
+   - Se ocorre `revert` ou falta de gas: o estado é revertido, mas o gas é consumido.
+
+9. **Propagação e verificação**
+   O bloco é propagado para a rede.  
+   Todos os outros nós:
+   - reexecutam as transações
+   - verificam se o estado final e o consumo de gas são válidos  
+   Se tudo bater, o bloco é aceito.
+
+---
+
+### Resposta curta (modelo mental)
+
+Quando alguém chama uma função de um smart contract, na verdade está enviando uma transação para o endereço do contrato, contendo a chamada da função no campo `data`.  
+Essa transação é assinada off-chain, enviada a um nó RPC e colocada no mempool.  
+O código do contrato **só é executado quando um validador inclui essa transação em um bloco e a executa na EVM**.  
+Depois disso, todos os nós reexecutam a transação para verificar que o novo estado da blockchain é válido.
 ---
 
 ## 🔴 BLOCO 2 — Smart Contracts (Modelo Mental Correto)
