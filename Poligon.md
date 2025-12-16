@@ -106,6 +106,115 @@ Porque blockchain é lenta, cara e limitada em memória.
   - segurança do sistema depende deles  
   - ponto crítico do ecossistema
 
+### Bridge (Cross-chain Bridge)
+Sistema que permite mover valor entre duas blockchains independentes.
+Funciona travando tokens na chain de origem e criando (mintando) tokens representativos na chain de destino.
+
+A segurança de uma bridge depende:
+- dos contratos inteligentes envolvidos
+- do modelo de validação (multisig, validadores, provas)
+- do código da própria bridge
+
+Bridges conectam **soberanias diferentes**.
+
+---
+
+### Lock & Mint
+Modelo clássico de bridge:
+- Lock: tokens originais são enviados para um contrato na chain de origem
+- Mint: tokens equivalentes são criados na chain de destino
+
+Enquanto os tokens estiverem travados, o usuário não pode utilizá-los na chain original.
+
+---
+
+### Burn & Unlock
+Fluxo inverso do bridge:
+- Burn: tokens representativos são destruídos na chain de destino
+- Unlock: tokens originais são liberados do contrato na chain de origem
+
+Garante que não exista double spend entre as chains.
+
+---
+
+### Relayer
+Entidade que transporta mensagens ou provas entre blockchains.
+Relayers:
+- não criam verdade
+- apenas transmitem dados
+- podem ser não confiáveis, pois as mensagens são verificadas on-chain
+
+---
+
+### Fragilidade das Bridges
+Bridges são historicamente o ponto mais vulnerável do ecossistema Web3.
+Riscos comuns:
+- bugs em contratos
+- validação fraca de provas
+- comprometimento de multisigs ou validadores
+
+A segurança **não é herdada automaticamente do Ethereum**.
+
+---
+
+### Rollup
+Solução de escalabilidade Layer 2 onde:
+- transações são executadas fora do Ethereum
+- mas o estado e a verificação final dependem do Ethereum L1
+
+Rollups **não são blockchains soberanas**.
+Eles herdam segurança diretamente do Ethereum.
+
+---
+
+### Optimistic Rollup
+Tipo de rollup que assume que transações são válidas por padrão.
+Características:
+- permite desafios (fraud proofs)
+- possui período de contestação
+- saques têm delay
+
+Exemplos: Optimism, Arbitrum.
+
+---
+
+### ZK Rollup
+Tipo de rollup que utiliza provas criptográficas de validade (zero-knowledge proofs).
+Características:
+- cada lote de transações vem com uma prova matemática
+- validade imediata no Ethereum
+- maior complexidade técnica
+
+Exemplos: zkSync, Starknet.
+
+---
+
+### Herança de Segurança
+Rollups herdam segurança do Ethereum porque:
+- qualquer estado inválido pode ser provado on-chain
+- o Ethereum é o árbitro final
+
+Bridges **não herdam** essa segurança automaticamente.
+
+---
+
+### Comparação Conceitual
+
+Bridges:
+- conectam blockchains independentes
+- exigem confiança adicional
+- maior risco sistêmico
+
+Rollups:
+- escalam o Ethereum
+- não exigem confiança no operador
+- segurança baseada em provas e L1
+
+---
+
+### Frase-chave
+Bridges movem valor entre soberanias.
+Rollups escalam a mesma soberania.
 ---
 
 ## 💰 9) Tópicos gerais: O que é MATIC?
@@ -368,7 +477,6 @@ Freios existentes:
 
 👉 Confiança social é substituída por **incentivos econômicos explícitos**.
 
----
 ---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
@@ -943,7 +1051,6 @@ https://hardhat.org/docs
 
 Antes disso, vira ruído.
 
----
 ---
 <!-- TODO: Perguntas que preciso responder-->
 # Perguntas que preciso responder
