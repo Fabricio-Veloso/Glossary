@@ -478,6 +478,119 @@ Freios existentes:
 👉 Confiança social é substituída por **incentivos econômicos explícitos**.
 
 ---
+#  Tópicos gerais: Assinatura, encoding e envio de transações no Ethereum
+
+## Assinatura de transações
+No Ethereum, uma transação **não é criptografada**, ela é **assinada**.  
+Assinar significa gerar uma prova criptográfica de que o emissor possui a chave privada correspondente ao endereço `from`.
+
+A assinatura é feita sobre o **hash do conteúdo da transação**, e não sobre o JSON em si.  
+Esse hash é obtido aplicando `keccak256` sobre a transação codificada (RLP), **sem os campos de assinatura**.
+
+A assinatura gera três valores:
+- `r`
+- `s`
+- `v`
+
+Esses campos permitem que qualquer nó da rede:
+- recupere a chave pública do emissor
+- derive o endereço
+- verifique que a transação foi realmente autorizada por aquele endereço
+
+---
+
+## “Conteúdo embaralhado” (raw transaction)
+O campo `raw` retornado por um nó RPC **não está criptografado**.  
+Ele é uma **representação hexadecimal de bytes binários**, resultado de:
+
+1. Encoding eficiente da transação (RLP)
+2. Inclusão da assinatura (`v`, `r`, `s`)
+3. Serialização final para transporte
+
+O conteúdo parece “embaralhado” porque:
+- não é texto
+- não é JSON
+- não é estruturado para leitura humana
+
+Qualquer nó pode decodificar esse conteúdo e validar a transação.
+
+---
+
+## Assinatura ≠ criptografia
+É fundamental não confundir os conceitos:
+- **Assinatura** garante autenticidade e integridade
+- **Criptografia** garantiria confidencialidade (o que Ethereum não faz)
+
+Todas as transações do Ethereum são públicas e legíveis por qualquer pessoa.
+
+---
+
+## Encoding eficiente
+Antes de ser assinada e enviada, a transação precisa ser convertida de uma estrutura lógica (campos como `nonce`, `to`, `value`, etc.) para uma forma **binária compacta e determinística**.
+
+O Ethereum usa **RLP (Recursive Length Prefix)** como esquema de encoding.
+
+O objetivo do encoding eficiente é:
+- reduzir o número de bytes transmitidos
+- garantir parsing rápido e previsível
+- evitar ambiguidades
+- permitir hashing determinístico
+
+---
+
+## RLP (Recursive Length Prefix)
+RLP é um método de encoding binário usado pelo Ethereum para:
+- transações
+- blocos
+- estruturas internas do protocolo
+
+Características principais:
+- não depende de chaves ou criptografia
+- codifica strings, inteiros e listas
+- sempre produz a mesma saída para a mesma entrada
+- inclui informações de tamanho no próprio encoding
+
+RLP descreve apenas **estrutura**, não semântica.
+
+---
+
+## Hexadecimal como representação
+Os dados da transação circulam na rede como **bytes**.  
+A forma hexadecimal existe apenas para:
+- visualização
+- debug
+- transporte em interfaces humanas (RPC, logs, explorers)
+
+Hexadecimal **não é o encoding**, apenas a representação dos bytes já codificados.
+
+---
+
+## Por que JSON não é usado no protocolo
+JSON é utilizado apenas na camada de interface (RPC), pois:
+- é legível por humanos
+- é fácil de debugar
+
+Porém, ele não é adequado para consenso porque:
+- é verboso
+- não é binário
+- pode ser ambíguo
+- não é determinístico por padrão
+
+No nível do protocolo, JSON nunca é utilizado.
+
+---
+
+## Caminho completo de uma transação (visão geral)
+1. O usuário cria uma transação via software off-chain (wallet)
+2. A transação é codificada em RLP
+3. O hash da transação codificada é gerado
+4. O hash é assinado com a chave privada do emissor
+5. A assinatura é anexada à transação
+6. A transação é serializada em bytes
+7. Os bytes são representados em hexadecimal (raw transaction)
+8. O nó RPC faz o broadcast para a rede
+---
+
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
 ## 🧠 CAMADA 1 — Mudar o modelo mental (fundamental)
@@ -730,11 +843,11 @@ Eles **não decidem nada crítico**.
 - [x] Estado global da blockchain
 
 ### Contas e transações
-- [ ] EOA (Externally Owned Accounts)
-- [ ] Contract Accounts
+- [x] EOA (Externally Owned Accounts)
+- [x] Contract Accounts
 - [ ] Transações:
-  - [ ] nonce
-  - [ ] gas
+  - [x] nonce
+  - [x] gas
   - [ ] gas limit
   - [ ] gas price / base fee
 - [ ] O que acontece quando uma transação é enviada
