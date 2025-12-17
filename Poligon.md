@@ -936,7 +936,7 @@ Depois disso, todos os nós reexecutam a transação para verificar que o novo e
 
 ## 🔴 BLOCO 2 — Smart Contracts (Modelo Mental Correto)
 
-- [x] O que é um smart contract (tecnicamente)
+- [ ] O que é um smart contract (tecnicamente)
 - [ ] Diferença entre:
   - [ ] call (leitura)
   - [ ] transaction (escrita)
