@@ -2,10 +2,10 @@
 
 ## Sumário:
 
-1. Tópicos gerais.
-2. Transição Web2 → Web3.
-3. 📚 Como estudar isso de forma eficaz (método, não links).
-4. 📚 Documentação essencial — Como usar sem se perder.
+Tópicos gerais.
+Transição Web2 → Web3.
+Como estudar isso de forma eficaz (método, não links).
+Documentação essencial — Como usar sem se perder.
 ---
 # Tópicos gerais:
 ## 🌍 1) Tópicos gerais: O que é uma sidechain?
@@ -936,7 +936,7 @@ Depois disso, todos os nós reexecutam a transação para verificar que o novo e
 
 ## 🔴 BLOCO 2 — Smart Contracts (Modelo Mental Correto)
 
-- [ ] O que é um smart contract (tecnicamente)
+- [x] O que é um smart contract (tecnicamente)
 - [ ] Diferença entre:
   - [ ] call (leitura)
   - [ ] transaction (escrita)
