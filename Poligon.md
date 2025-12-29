@@ -833,6 +833,7 @@ Eles **não decidem nada crítico**.
 > partindo do zero prático até um mini-projeto com padrões da indústria.
 
 ---
+# CONCEITUAL
 
 ## 🔴 BLOCO 1 — Fundamentos de Blockchain & Ethereum (Obrigatório)
 
@@ -936,17 +937,17 @@ Depois disso, todos os nós reexecutam a transação para verificar que o novo e
 
 ## 🔴 BLOCO 2 — Smart Contracts (Modelo Mental Correto)
 
-- [ ] O que é um smart contract (tecnicamente)
-- [ ] Diferença entre:
-  - [ ] call (leitura)
-  - [ ] transaction (escrita)
-- [ ] Determinismo
-- [ ] Por que contratos não:
-  - [ ] acessam internet
-  - [ ] acessam arquivos
-  - [ ] acessam tempo real confiável
-- [ ] Como contratos chamam outros contratos
-- [ ] Eventos (logs) e seu papel
+- [x] O que é um smart contract (tecnicamente)
+- [x] Diferença entre:
+  - [x] call (leitura)
+  - [x] transaction (escrita)
+- [x] Determinismo
+- [x] Por que contratos não:
+  - [x] acessam internet
+  - [x] acessam arquivos
+  - [x] acessam tempo real confiável
+- [x] Como contratos chamam outros contratos
+- [x] Eventos (logs) e seu papel
 
 🎯 Objetivo do bloco:
 > Entender **limitações e garantias**, não apenas possibilidades.
@@ -956,51 +957,52 @@ Depois disso, todos os nós reexecutam a transação para verificar que o novo e
 ## 🔴 BLOCO 3 — EVM (Ethereum Virtual Machine)
 
 ### Funcionamento interno (nível correto)
-- [ ] O que é a EVM
-- [ ] Máquina baseada em stack (conceito)
-- [ ] Execução determinística
-- [ ] Gas como custo computacional
+- [x] O que é a EVM
+- [x] Máquina baseada em stack (conceito)
+- [x] Execução determinística
+- [x] Gas como custo computacional
 
 ### Memória e armazenamento
-- [ ] `storage` (persistente)
-- [ ] `memory` (temporário)
-- [ ] `calldata` (somente leitura)
-- [ ] Diferença de custo entre leitura e escrita
+- [x] `storage` (persistente)
+- [x] `memory` (temporário)
+- [x] `calldata` (somente leitura)
+- [x] Diferença de custo entre leitura e escrita
 
 ### Armadilhas comuns
-- [ ] Por que loops são perigosos
-- [ ] Por que arrays grandes custam caro
-- [ ] O que significa “bricking” um contrato
+- [x] Por que loops são perigosos
+- [x] Por que arrays grandes custam caro
+- [x] O que significa “bricking” um contrato
 
 🎯 Objetivo do bloco:
 > Não escrever código ineficiente ou perigoso sem perceber.
 
 ---
+# CONCEITUAL/>
 
 ## 🔴 BLOCO 4 — Solidity (Essencial antes de codar)
 
 ### Base da linguagem
 - [ ] Tipos básicos
-- [ ] Funções
-- [ ] Construtor
-- [ ] Visibilidade:
-  - [ ] public
-  - [ ] external
-  - [ ] internal
-  - [ ] private
+- [x] Funções
+- [x] Construtor
+- [x] Visibilidade:
+  - [x] public
+  - [x] external
+  - [x] internal
+  - [x] private
 
 ### Contexto de execução
-- [ ] `msg.sender`
+- [x] `msg.sender`
 - [ ] `msg.value`
 - [ ] `address(this)`
 - [ ] `block.number` (conceito, cuidado)
 
 ### Controle e segurança básica
-- [ ] `require`
+- [x] `require`
 - [ ] `revert`
 - [ ] `error`
 - [ ] Modifiers
-- [ ] Events
+- [x] Events
 
 🚫 Fora de escopo por enquanto:
 - Inline assembly
