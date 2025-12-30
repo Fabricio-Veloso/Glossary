@@ -1012,26 +1012,6 @@ Ou ainda:
 👉 Entender isso separa código funcional de código realmente bem projetado.
 
 ---
-### Transição Web2 → Web3: 📦 O que realmente é um smart contract
-
-- Um smart contract **não é um backend**
-- Ele é:
-  - um programa determinístico
-  - rodando em milhares de máquinas
-  - com custo por instrução (gas)
-  - sem acesso externo
-  - sem IO
-  - sem relógio confiável
-  - sem threads
-  - sem exceptions no sentido tradicional
-
-**Analogia correta:**
-- Uma *stored procedure*:
-  - distribuída
-  - imutável
-  - pública
-  - paga por uso
-  - irreversível
 
 ## 1️⃣ emit pode ser usado para outras coisas?
 
@@ -1157,10 +1137,275 @@ emit Increment(msg.sender, 3);
 Se você inverter isso na cabeça, o compilador vai te corrigir — com razão.
 
 ---
+
+## Tópicos práticos: (EVM context) Coisas que existem em todo contrato 
+
+Aqui entramos num **checkpoint muito importante**.
+
+Um contrato **não vive isolado**.  
+Ele sempre roda dentro de um **contexto de execução fornecido pela EVM**.
+
+Entender isso muda completamente como você lê e escreve contratos.
+
+---
+
+### Principais “variáveis globais” (as mais importantes)
+
+Essas existem **em todo contrato**, sempre disponíveis.
+
+---
+
+#### 🔹 `msg`
+
+Informações da **chamada atual**:
+
+```solidity
+msg.sender   // quem chamou
+msg.value    // quanto de ETH / MATIC foi enviado
+msg.data     // calldata bruta
+```
+
+👉 Tudo que depende de **quem chamou** ou **o que foi enviado** vem daqui.
+
+---
+
+#### 🔹 `address(this)`
+
+O endereço do **próprio contrato**.
+
+```solidity
+address(this).balance;
+```
+
+👉 É assim que você acessa o **saldo do contrato**  
+👉 Por isso **não precisamos** de variáveis como `totalDeposited`
+
+📌 O saldo já existe no nível da EVM.
+
+---
+
+#### 🔹 `block`
+
+Informações do **bloco atual**:
+
+```solidity
+block.number
+block.timestamp
+block.chainid
+```
+
+⚠️ Importante:
+
+- **não use para aleatoriedade**  
+- timestamps podem ser **manipulados levemente por miners / validators**  
+
+👉 Use apenas para regras de tempo **tolerantes**.
+
+---
+
+#### 🔹 `tx`
+
+Contexto da **transação inteira**:
+
+```solidity
+tx.origin
+```
+
+⚠️ **Quase sempre não deve ser usado**  
+(security footgun clássico)
+
+📌 Regra prática:  
+Se você acha que precisa de `tx.origin`, provavelmente não precisa.
+
+---
+
+## 3️⃣ Regras especiais sobre `address` e `.balance`
+
+Todo `address`:
+
+- pode ser **EOA** (pessoa)  
+- pode ser **contrato**  
+- pode **receber ETH**  
+- tem `.balance`  
+
+```solidity
+address user;
+uint256 saldo = user.balance;
+```
+
+👉 Não existe “address sem saldo”.
+
+---
+
+### Um contrato recebe ETH se:
+
+- função `receive()` existir  
+- ou `fallback()` for `payable`  
+- ou alguém usar `selfdestruct`  
+
+Mesmo sem código explícito, ETH **pode chegar**.
+
+---
+
+### Enviar ETH (resumo mental)
+
+Método | Recomendação
+--- | ---
+`transfer` | ❌ legado
+`send` | ❌ legado
+`call` | ✅ padrão atual
+
+📌 O *porquê* disso vem depois — o conceito você já tem.
+
+---
+
+## 4️⃣ `public`, `external`, `internal`, `private` (sem confusão)
+
+Essa parte é **fundamental** para escrever contratos limpos.
+
+🧠 Regra mental rápida:
+
+> **Quem pode chamar essa função?**
+
+---
+
+### 🔹 public
+
+Pode ser chamada:
+
+- externamente  
+- internamente  
+
+Gera getter automático (para variáveis).
+
+```solidity
+function increment() public {}
+```
+
+---
+
+### 🔹 external
+
+Só pode ser chamada **de fora**.
+
+- mais eficiente para calldata  
+- ideal para funções de interface  
+
+```solidity
+function increment() external {}
+```
+
+📌 Se você **não chama internamente**, prefira `external`.
+
+---
+
+### 🔹 internal
+
+Só o contrato **e os filhos** (inheritance).
+
+Muito usado para:
+
+- lógica reutilizável  
+- modifiers  
+- funções auxiliares  
+
+```solidity
+function _updateCount() internal {}
+```
+
+---
+
+### 🔹 private
+
+Só dentro do **contrato atual**.
+
+Nem contratos filhos acessam.
+
+```solidity
+function _secret() private {}
+```
+
+---
+
+### Tabela resumo
+
+Visibilidade | Quem pode chamar
+--- | ---
+public | todos
+external | só fora
+internal | contrato + filhos
+private | só contrato
+
+---
+
+## 5️⃣ Como mudar o owner do contrato (padrão real)
+
+Esse é um **padrão real de mercado**.
+
+```solidity
+event OwnershipTransferred(
+    address indexed oldOwner,
+    address indexed newOwner
+);
+
+function transferOwnership(address newOwner) public {
+    require(msg.sender == owner, "only owner");
+    require(newOwner != address(0), "invalid address");
+
+    address oldOwner = owner;
+    owner = newOwner;
+
+    emit OwnershipTransferred(oldOwner, newOwner);
+}
+```
+
+📌 Esse padrão aparece em **quase todos os contratos sérios**.
+
+Depois você vai ver isso encapsulado no:
+
+`Ownable` (OpenZeppelin)
+
+Mas agora você **entende o que ele faz por dentro** — esse é o diferencial.
+
+---
+
+## 🧠 Checkpoint geral (muito importante)
+
+Você agora entende:
+
+- events como **logs offchain**  
+- contexto EVM (`msg`, `block`, `address(this)`)  
+- por que **não duplicar estado**  
+- visibilidade de funções  
+- padrão real de ownership  
+
+👉 Isso significa que você **já passou do nível iniciante em Solidity**.
+
+---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
 ## 🧠 CAMADA 1 — Mudar o modelo mental (fundamental)
 
+### Transição Web2 → Web3: 📦 O que realmente é um smart contract
+
+- Um smart contract **não é um backend**
+- Ele é:
+  - um programa determinístico
+  - rodando em milhares de máquinas
+  - com custo por instrução (gas)
+  - sem acesso externo
+  - sem IO
+  - sem relógio confiável
+  - sem threads
+  - sem exceptions no sentido tradicional
+
+**Analogia correta:**
+- Uma *stored procedure*:
+  - distribuída
+  - imutável
+  - pública
+  - paga por uso
+  - irreversível
 ### Transição Web2 → Web3: 🔴 Diferença central entre Web2 e Web3
 
 **Web2**
