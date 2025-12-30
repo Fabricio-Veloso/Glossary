@@ -1380,6 +1380,151 @@ Você agora entende:
 - padrão real de ownership  
 
 👉 Isso significa que você **já passou do nível iniciante em Solidity**.
+---
+## Tópicos Práticos: O que `indexed` é de verdade (modelo mental)
+
+Quando você emite um `event`, a EVM grava um **log**, e esse log é dividido em **duas áreas** bem distintas:
+
+---
+
+### 🔹 Topics (índice)
+
+- dados **indexados**  
+- usados para **filtragem**  
+- estrutura fixa  
+- rápidos de buscar  
+
+---
+
+### 🔹 Data (payload)
+
+- dados **não indexados**  
+- servem apenas para **leitura posterior**  
+- **não podem** ser filtrados diretamente  
+
+📌 `indexed` decide **em qual dessas áreas** cada parâmetro vai parar.
+
+---
+
+## 2️⃣ O que muda quando você marca algo como indexed
+
+```solidity
+event Increment(address indexed by, uint256 amount);
+```
+
+O que acontece:
+
+- `by` → vai para **topics**  
+- `amount` → vai para **data**  
+
+Isso permite consultas como:
+
+```javascript
+counter.queryFilter(
+  counter.filters.Increment(someAddress)
+);
+```
+
+👉 Sem `indexed`, **isso não seria possível**.
+
+---
+
+## 3️⃣ Limites e regras importantes
+
+### ⚠️ Limite duro
+
+- Máximo de **3 parâmetros indexed**  
+- O **4º topic** é sempre o **hash do event**  
+
+📌 Esse limite vem da própria EVM.
+
+---
+
+### ⚠️ Tipos grandes
+
+- Tipos simples (`address`, `uint256`) → armazenados diretamente  
+- Tipos complexos (`string`, `bytes`) → **hash** vai para o topic  
+
+📌 Por isso:
+
+- `address indexed` faz sentido  
+- `string indexed` quase nunca  
+
+---
+
+## 4️⃣ Quando usar indexed
+
+Use `indexed` quando você sabe que alguém vai querer perguntar:
+
+> “Me mostra todos os eventos onde **X** participou”
+
+Casos clássicos:
+
+- `address from`  
+- `address to`  
+- `owner`  
+- `spender`  
+- `caller`  
+
+Exemplo padrão (ERC-20):
+
+```solidity
+event Transfer(
+    address indexed from,
+    address indexed to,
+    uint256 value
+);
+```
+
+👉 Esse padrão existe por um motivo muito concreto: **consulta eficiente**.
+
+---
+
+## 5️⃣ Quando NÃO usar indexed
+
+❌ Não use para:
+
+- valores agregáveis (`amount`)  
+- dados que só fazem sentido juntos  
+- coisas que ninguém vai filtrar  
+
+Exemplo ruim:
+
+```solidity
+event Updated(uint256 indexed newValue);
+```
+
+Porque:
+
+- ninguém filtra por valor exato  
+- desperdício de topic  
+- perde capacidade de indexar algo realmente útil  
+
+---
+
+## 6️⃣ Custo de gás (sem exagero)
+
+- `indexed` **custa mais gás**  
+- mas **não é crítico** na maioria dos casos  
+
+📌 Não micro-otimize isso agora.
+
+👉 **Clareza > micro-otimização**
+
+---
+
+## 7️⃣ Regra prática (pra nunca errar)
+
+🔹 **Indexe quem**  
+🔹 **Não indexe quanto**  
+🔹 Pense em **consultas futuras**, não no contrato  
+
+Se você imaginar um backend ou UI:
+
+- “quero todos os eventos desse usuário” → `indexed`  
+- “quero ver os detalhes” → `data`  
+
+👉 `indexed` é uma decisão de **observabilidade**, não de lógica.
 
 ---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
