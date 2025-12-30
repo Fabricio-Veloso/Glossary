@@ -1528,6 +1528,235 @@ Se você imaginar um backend ou UI:
 
 👉 `indexed` é uma decisão de **observabilidade**, não de lógica.
 
+## Tópicos Práticos: `modifier` 
+
+Olha para o seu contrato `Counter`.  
+Você repetiu várias vezes:
+
+```solidity
+require(msg.sender == owner, "only the owner can ...");
+```
+
+Isso gera três problemas práticos:
+
+- duplicação de código  
+- maior chance de erro (esquecer o `require` em alguma função)  
+- leitura mais difícil (a regra importante fica “enterrada” no meio da função)  
+
+👉 `modifiers` existem **exatamente** para declarar essas regras **uma vez** e reaplicá-las.
+
+---
+
+## 2️⃣ O que é um modifier (conceitualmente)
+
+Um `modifier` é:
+
+- uma **regra de execução** que envolve uma função  
+
+Ele diz:
+
+> “Antes (e/ou depois) da função rodar, faça isso.”
+
+🧠 Modelo mental correto:
+
+> **modifier = middleware de função**
+
+Nada de mágico. Só composição.
+
+---
+
+## 3️⃣ Sintaxe básica (sem mágica)
+
+Exemplo mínimo:
+
+```solidity
+modifier onlyOwner() {
+    require(msg.sender == owner, "only the owner");
+    _;
+}
+```
+
+O ponto **mais importante** aqui é o `_`.
+
+---
+
+### 🔹 O que é `_`?
+
+- representa o **corpo da função**  
+- onde o `_` aparece é onde a função “entra”  
+
+Ou seja, isso:
+
+```solidity
+modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+}
+```
+
+Significa:
+
+1. roda o `require`  
+2. executa a função  
+
+📌 Se não existir `_`, a função **nunca roda**.
+
+---
+
+## 4️⃣ Usando o modifier na prática
+
+Antes (sem modifier):
+
+```solidity
+function increment(uint256 amount) public {
+    require(msg.sender == owner, "only owner");
+    require(amount > 0);
+
+    count += amount;
+}
+```
+
+Depois (com modifier):
+
+```solidity
+function increment(uint256 amount) public onlyOwner {
+    require(amount > 0);
+    count += amount;
+}
+```
+
+💡 Resultado real:
+
+- mais curto  
+- mais legível  
+- regra de acesso clara no **“título” da função**  
+
+---
+
+## 5️⃣ Aplicando ao contrato Counter (refatoração limpa)
+
+```solidity
+pragma solidity ^0.8.20;
+
+contract Counter {
+    uint256 public count;
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "only the owner");
+        _;
+    }
+
+    function increment(uint256 amount) public onlyOwner {
+        require(amount > 0, "amount must be greater than zero");
+        count += amount;
+    }
+
+    function decrement(uint256 amount) public onlyOwner {
+        require(amount > 0, "amount must be greater than zero");
+        require(count >= amount, "counter underflow");
+        count -= amount;
+    }
+
+    function reset() public onlyOwner {
+        count = 0;
+    }
+}
+```
+
+🔍 Repara como agora:
+
+- a regra de acesso virou parte da **API**  
+- a função ficou focada só na **lógica de negócio**  
+
+---
+
+## 6️⃣ Modifier pode receber parâmetros? ✅ Sim
+
+Exemplo:
+
+```solidity
+modifier minAmount(uint256 min) {
+    require(min > 0, "invalid min");
+    _;
+}
+```
+
+Uso:
+
+```solidity
+function increment(uint256 amount)
+    public
+    onlyOwner
+    minAmount(amount)
+{
+    count += amount;
+}
+```
+
+⚠️ Isso é poderoso, mas use com **parcimônia**.  
+Modifiers muito “inteligentes” prejudicam legibilidade.
+
+---
+
+## 7️⃣ Modifier pode rodar código depois da função?
+
+✅ Sim. Basta colocar lógica **após** o `_`.
+
+```solidity
+modifier logAfter() {
+    _;
+    // código depois da função
+}
+```
+
+Casos comuns:
+
+- auditoria  
+- eventos pós-execução  
+- medidas de segurança  
+
+---
+
+## 8️⃣ Boas práticas reais (importante)
+
+✅ Use modifiers para:
+
+- controle de acesso (`onlyOwner`, `onlyAdmin`)  
+- estado do contrato (`whenPaused`, `whenNotPaused`)  
+- pré-condições reutilizáveis  
+
+❌ Evite usar modifiers para:
+
+- lógica de negócio complexa  
+- fluxos difíceis de seguir  
+- alterações implícitas demais  
+
+📌 Regra prática:
+
+> **Se o modifier faz mais do que validar contexto, desconfie.**
+
+---
+
+## 9️⃣ Ligando com o que você já sabe
+
+Você já entendeu:
+
+- `require`  
+- `msg.sender`  
+- `owner`  
+- `events`  
+
+👉 `modifiers` são só:
+
+**regras declarativas reutilizáveis**
+
+Nada de mágico aqui — só organização e segurança.
+
 ---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
