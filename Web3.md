@@ -1380,8 +1380,10 @@ Você agora entende:
 - padrão real de ownership  
 
 👉 Isso significa que você **já passou do nível iniciante em Solidity**.
+
 ---
-## Tópicos Práticos: O que `indexed` é de verdade (modelo mental)
+
+## Tópicos Práticos: `Indexed` 
 
 Quando você emite um `event`, a EVM grava um **log**, e esse log é dividido em **duas áreas** bem distintas:
 
