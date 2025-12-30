@@ -1,8 +1,9 @@
-# Glossário de Polygon
+# Glossário de WEB3
 
 ## Sumário:
 
 Tópicos gerais.
+Tópicos práticos.
 Transição Web2 → Web3.
 Como estudar isso de forma eficaz (método, não links).
 Documentação essencial — Como usar sem se perder.
@@ -590,7 +591,572 @@ No nível do protocolo, JSON nunca é utilizado.
 7. Os bytes são representados em hexadecimal (raw transaction)
 8. O nó RPC faz o broadcast para a rede
 ---
+# Tópicos Práticos
 
+## Tópicos Praticos: 🧱 Uso de `require` 
+*em Solidity — Validação, Segurança e Semântica*
+
+---
+### 🎯 Contexto geral
+
+`require` é uma das construções mais importantes de Solidity.  
+Entender **bem** o que ele faz antes de sair alterando código evita bugs caros, estados inválidos e falhas de segurança.
+
+Ele não é um detalhe de sintaxe — é parte central do **modelo mental Web3**.
+
+---
+
+## 1️⃣ O que é `require`, de verdade (nível EVM)
+
+`require` **não é** um `if` especial.
+
+Ele é uma **barreira de validade da execução**.
+
+Quando você escreve:
+
+```solidity
+require(condition, "erro");
+```
+
+Você está declarando:
+
+“Se essa condição não for verdadeira, cancele toda a execução desta chamada.”
+
+📌 Tecnicamente, o que acontece:
+
+- A EVM executa a instrução **REVERT**  
+- Todo o estado é restaurado ao que era antes da chamada  
+- Nenhuma variável de storage é alterada  
+- Nenhum ETH é transferido  
+- O gás não utilizado é devolvido  
+- A mensagem de erro é propagada para quem chamou  
+
+👉 Ou seja: é uma execução que nunca existiu, do ponto de vista do estado da blockchain.
+
+---
+
+## 2️⃣ require vs revert vs assert
+
+### 🔹 require
+
+Use quando:
+
+- o erro pode acontecer legitimamente  
+- depende de input do usuário  
+- faz parte das regras normais do contrato  
+
+Exemplos típicos:
+
+```solidity
+require(msg.sender == owner);
+require(amount > 0);
+require(balance[msg.sender] >= amount);
+```
+
+👉 É o mecanismo padrão de validação externa.
+
+---
+
+### 🔹 revert
+
+É equivalente a `require(false, "...")`, mas usado de forma mais explícita.
+
+```solidity
+if (x == 0) {
+    revert("x cannot be zero");
+}
+```
+
+Use quando:
+
+- a lógica de erro é mais complexa  
+- existem múltiplas condições  
+- você quer sair no meio da função  
+
+📌 Na prática, `require` cobre cerca de 90% dos casos.
+
+---
+
+### 🔹 assert ⚠️
+
+⚠️ **Não é para validação de input.**
+
+Use apenas quando:
+
+- algo nunca deveria falhar  
+- indica bug interno  
+- quebra de invariantes do contrato  
+
+```solidity
+assert(totalSupply >= balance[msg.sender]);
+```
+
+📌 Semântica importante:
+
+- se um `assert` falha, o contrato é considerado bugado  
+- historicamente, falhas de `assert` eram tratadas como erros graves  
+- conceitualmente significa: “isso é impossível; se aconteceu, há um erro de programação”
+
+---
+
+## 3️⃣ Regras práticas de uso do require
+
+Essas são as regras que realmente importam no dia a dia.
+
+---
+
+### ✅ Regra 1 — Use require no início da função
+
+```solidity
+function withdraw(uint amount) public {
+    require(amount > 0);
+    require(balance[msg.sender] >= amount);
+
+    balance[msg.sender] -= amount;
+}
+```
+
+❌ Nunca faça:
+
+```solidity
+balance[msg.sender] -= amount;
+require(balance[msg.sender] >= 0); // errado
+```
+
+📌 Valida primeiro, executa depois.
+
+---
+
+### ✅ Regra 2 — Não use require para fluxo normal
+
+❌ Errado:
+
+```solidity
+require(x > 0);
+x--;
+```
+
+✔️ Melhor:
+
+```solidity
+if (x == 0) return;
+x--;
+```
+
+👉 `require` é para condições inválidas, não para controle normal de fluxo.
+
+---
+
+### ✅ Regra 3 — Não esconda require no meio da função
+
+❌ Ruim:
+
+```solidity
+x += 1;
+require(msg.sender == owner);
+```
+
+✔️ Bom:
+
+```solidity
+require(msg.sender == owner);
+x += 1;
+```
+
+📌 Isso evita efeitos colaterais antes de uma falha.
+
+---
+
+## 4️⃣ Por que contratos seguros usam tanto require
+
+Porque ele garante três propriedades críticas:
+
+🔒 **1. Estado consistente**  
+Se algo falhar, nada muda.
+
+⛽ **2. Eficiência de gás**  
+O usuário não paga pelo que não foi executado.
+
+🧠 **3. Código legível e auditável**  
+
+Auditores leem contratos assim:
+
+“Quais são as condições para essa função rodar?”
+
+E essas condições estão claras no topo da função.
+
+---
+
+## 5️⃣ Exemplos — bom vs ruim
+
+❌ **Ruim (mentalidade Web2)**
+
+```solidity
+function withdraw(uint amount) public {
+    if (balance[msg.sender] < amount) {
+        return;
+    }
+    balance[msg.sender] -= amount;
+}
+```
+
+Problemas:
+
+- falha silenciosa  
+- difícil de debugar  
+- comportamento ambíguo para quem chama  
+
+---
+
+✅ **Bom (mentalidade Solidity)**
+
+```solidity
+function withdraw(uint amount) public {
+    require(balance[msg.sender] >= amount, "Insufficient balance");
+    balance[msg.sender] -= amount;
+}
+```
+
+👉 Erro explícito, estado consistente, sem ambiguidade.
+
+---
+
+## 6️⃣ Checklist mental simples
+
+Antes de escrever um `require`, pergunte:
+
+❓ Isso é uma regra do contrato?  
+❓ Pode falhar por erro do usuário?  
+❓ Se falhar, nada deve mudar?
+
+👉 Se todas forem “sim” → `require`.
+
+---
+
+📌 **Nota final**
+
+Entender `require` bem cedo muda completamente:
+
+- como você estrutura funções  
+- como você pensa em segurança  
+- como você escreve código auditável  
+
+É uma daquelas peças pequenas que sustentam contratos grandes e seguros.
+
+---
+
+# Tópicos práticos: 📣 Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica
+
+
+### 2️⃣ O que events são na prática (sem romantizar)
+
+`events\` **NÃO** servem para lógica interna do contrato.
+
+Eles servem para:
+
+- comunicar coisas para fora da blockchain  
+- permitir que aplicações acompanhem o que aconteceu  
+- criar histórico legível e indexável  
+
+📌 Um `event\` é basicamente:
+
+> “Ei mundo offchain, algo relevante aconteceu aqui”
+
+Eles:
+
+- **não alteram estado**  
+- **não podem ser lidos por outros contratos**  
+- são gravados em **logs**, não em **storage**  
+
+👉 Ou seja: events existem **exclusivamente para observação externa**.
+
+---
+
+## 3️⃣ Quando usar events (regra simples)
+
+Use `events\` quando:
+
+- algo importante aconteceu  
+- alguém mudou estado  
+- alguém recebeu ou enviou valor  
+- algo precisa ser observável fora da chain  
+
+❌ **Não use events para**:
+
+- controle de acesso  
+- validações  
+- lógica interna  
+- substituto de storage  
+
+📌 Se a informação é necessária **para o contrato decidir algo**, ela **não pode** ser um event.
+
+---
+
+### 4️⃣ Aplicando events no Counter (mentalidade de engenheiro)
+
+Vamos pensar como engenheiros, não como “quem segue tutorial”.
+
+Pergunta correta:
+
+> O que é relevante alguém saber olhando de fora?
+
+Respostas óbvias:
+
+- contador foi incrementado  
+- contador foi decrementado  
+- contador foi resetado  
+- **quem** fez isso  
+- **quanto** mudou  
+
+---
+
+#### ✍️ Definindo os events
+
+```solidity
+event Increment(address indexed by, uint256 amount, uint256 newValue);
+event Decrement(address indexed by, uint256 amount, uint256 newValue);
+event Reset(address indexed by);
+```
+
+📌 `indexed\` permite filtrar por endereço depois (extremamente comum).
+
+👉 Cada `event\` descreve **um fato que aconteceu**, não uma regra.
+
+---
+
+### 🔥 Emitindo events (parte prática)
+
+```solidity
+function increment(uint256 amount) public {
+    require(msg.sender == owner, "only the owner can increment");
+    require(amount > 0, "amount must be greater than zero");
+
+    count += amount;
+
+    emit Increment(msg.sender, amount, count);
+}
+```
+
+```solidity
+function decrement(uint256 amount) public {
+    require(msg.sender == owner, "only the owner can decrement");
+    require(amount > 0, "amount must be greater than zero");
+    require(count >= amount, "counter cannot go below zero");
+
+    count -= amount;
+
+    emit Decrement(msg.sender, amount, count);
+}
+```
+
+```solidity
+function reset() public {
+    require(msg.sender == owner, "only the owner can reset");
+
+    count = 0;
+
+    emit Reset(msg.sender);
+}
+```
+
+📌 Repare na ordem mental correta:
+
+1. valida  
+2. muda estado  
+3. **conta a história com um event**
+
+---
+
+### 5️⃣ Como isso é usado fora do contrato (visão prática)
+
+Exemplo mental (frontend / script JS):
+
+```javascript
+counter.on("Increment", (by, amount, newValue) => {
+  console.log(`${by} incrementou ${amount}, novo valor: ${newValue}`);
+});
+```
+
+Ou buscar histórico:
+
+```javascript
+const events = await counter.queryFilter(
+  counter.filters.Increment()
+);
+```
+
+📌 É assim que:
+
+- dashboards  
+- UIs  
+- indexadores (The Graph)  
+- backends Web3  
+
+sabem o que aconteceu, **sem ficar lendo storage a cada bloco**.
+
+---
+
+### 6️⃣ Checkpoint mental (guarde isso)
+
+**Storage** = estado atual  
+**Event** = histórico do que aconteceu  
+
+Ou ainda:
+
+> contratos **decidem**  
+> events **contam a história**
+
+❌ Se você tentar usar `event\` como estado → erro conceitual  
+❌ Se você tentar usar `storage\` como log → caro e ruim  
+
+👉 Entender isso separa código funcional de código realmente bem projetado.
+
+---
+### Transição Web2 → Web3: 📦 O que realmente é um smart contract
+
+- Um smart contract **não é um backend**
+- Ele é:
+  - um programa determinístico
+  - rodando em milhares de máquinas
+  - com custo por instrução (gas)
+  - sem acesso externo
+  - sem IO
+  - sem relógio confiável
+  - sem threads
+  - sem exceptions no sentido tradicional
+
+**Analogia correta:**
+- Uma *stored procedure*:
+  - distribuída
+  - imutável
+  - pública
+  - paga por uso
+  - irreversível
+
+## 1️⃣ emit pode ser usado para outras coisas?
+
+Resposta curta: **não — e isso é bom.**
+
+---
+
+### O que `emit` faz exatamente
+
+`emit` **apenas dispara um event**.
+
+Ele:
+
+- **não executa lógica**  
+- **não altera estado**  
+- **não retorna valor**  
+- **não pode falhar sozinho**  
+
+Exemplo:
+
+```solidity
+emit Increment(msg.sender, amount, count);
+```
+
+É literalmente:
+
+> “registre esse log nos logs da transação”
+
+Nada mais acontece além disso.
+
+---
+
+### O que NÃO existe (e nunca existiu)
+
+❌ `emit` condicional  
+❌ `emit` que influencia fluxo  
+❌ `emit` lido por outro contrato  
+❌ `emit` como trigger interno  
+
+📌 Se você está pensando em usar `emit` para **controlar comportamento**, você está no caminho errado conceitualmente.
+
+---
+
+### 📌 Regra de ouro (memorize isso)
+
+> **Se remover todos os `emit` de um contrato,  
+> o comportamento onchain dele não muda.**
+
+Isso é **intencional**.
+
+👉 Events existem para **observação**, não para **decisão**.  
+👉 `emit` é narrativa, não mecânica.  
+
+Se essa separação estiver clara na sua cabeça,  
+você dificilmente vai cometer erros arquiteturais com events.
+
+## 1️⃣ Precisa declarar um event antes de usar `emit`?
+
+✅ **Sim. Sempre. Sem exceção.**
+
+---
+
+### Como isso funciona em Solidity
+
+Em Solidity:
+
+- `event` define a **assinatura** do log  
+- `emit` usa essa definição  
+
+Se o `event` **não existir**:
+
+```solidity
+emit SomethingHappened();
+```
+
+⛔ **Erro de compilação.**
+
+Não existe:
+
+- “event implícito”  
+- “emit solto”  
+- “log sem assinatura”  
+
+---
+
+### Por que isso é obrigatório?
+
+Porque:
+
+- o **nome** do event  
+- os **tipos** dos parâmetros  
+- quais campos são **indexed**  
+
+Tudo isso compõe o **topic hash** que será gravado nos logs da transação.
+
+📌 A EVM **não aceita logs sem definição prévia**.
+
+Sem essa informação, o log não tem identidade nem possibilidade de indexação.
+
+---
+
+### Analogia rápida (e correta)
+
+É como:
+
+- declarar uma função  
+- depois chamá-la  
+
+```solidity
+event Increment(address indexed by, uint256 amount);
+emit Increment(msg.sender, 3);
+```
+
+👉 Sem a primeira linha, a segunda **não existe**.
+
+---
+
+### Regra mental final
+
+> `event` define  
+> `emit` executa  
+
+Se você inverter isso na cabeça, o compilador vai te corrigir — com razão.
+
+---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
 ## 🧠 CAMADA 1 — Mudar o modelo mental (fundamental)
@@ -617,28 +1183,6 @@ No nível do protocolo, JSON nunca é utilizado.
 
 ---
 
-### Transição Web2 → Web3: 📦 O que realmente é um smart contract
-
-- Um smart contract **não é um backend**
-- Ele é:
-  - um programa determinístico
-  - rodando em milhares de máquinas
-  - com custo por instrução (gas)
-  - sem acesso externo
-  - sem IO
-  - sem relógio confiável
-  - sem threads
-  - sem exceptions no sentido tradicional
-
-**Analogia correta:**
-- Uma *stored procedure*:
-  - distribuída
-  - imutável
-  - pública
-  - paga por uso
-  - irreversível
-
----
 
 ## Transição Web2 → Web3: 🧩 CAMADA 2 — Base técnica mínima (para não ficar boiando)
 
@@ -979,6 +1523,7 @@ Depois disso, todos os nós reexecutam a transação para verificar que o novo e
 ---
 # CONCEITUAL/>
 
+# PRATICO>
 ## 🔴 BLOCO 4 — Solidity (Essencial antes de codar)
 
 ### Base da linguagem
