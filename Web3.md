@@ -3,7 +3,7 @@
 ## Sumário:
 
 Tópicos gerais.
-Tópicos práticos.
+Tópicos Práticos.
 Transição Web2 → Web3.
 Como estudar isso de forma eficaz (método, não links).
 Documentação essencial — Como usar sem se perder.
@@ -845,7 +845,7 @@ Entender `require` bem cedo muda completamente:
 
 ---
 
-# Tópicos práticos: 📣 Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica
+# Tópicos Práticos: 📣 Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica
 
 
 ### 2️⃣ O que events são na prática (sem romantizar)
@@ -1138,7 +1138,7 @@ Se você inverter isso na cabeça, o compilador vai te corrigir — com razão.
 
 ---
 
-## Tópicos práticos: (EVM context) Coisas que existem em todo contrato 
+## Tópicos Práticos: (EVM context) Coisas que existem em todo contrato 
 
 Aqui entramos num **checkpoint muito importante**.
 
@@ -1756,6 +1756,267 @@ Você já entendeu:
 **regras declarativas reutilizáveis**
 
 Nada de mágico aqui — só organização e segurança.
+
+## Tópicos Práticos : ABI Encoding.
+
+\### 1️⃣ O que é ABI Encoding (em uma frase honesta)
+
+ABI Encoding é o **contrato de serialização** entre o mundo EVM e o mundo externo.
+
+Ou, de forma mais explícita:
+
+> É o conjunto de regras que define como dados **tipados**  
+> (funções, argumentos, retornos, erros, eventos)  
+> são transformados em **bytes** e interpretados de forma idêntica por:
+>
+> \- contratos na EVM  
+> \- ferramentas off-chain (RPCs, libs, explorers, indexers)
+
+Nada mais. Nada menos.
+
+---
+
+\## 2️⃣ A EVM não entende “funções”, “strings” ou “eventos”
+
+Esse ponto é **crítico** para o modelo mental correto.
+
+A EVM **só entende**:
+
+\- bytes  
+\- posições de memória  
+\- opcodes  
+
+Logo:
+
+\- “chamar uma função”  
+\- “emitir um evento”  
+\- “retornar um valor”  
+\- “lançar um erro”  
+
+👉 tudo isso são **abstrações criadas pelo ABI**, não pela EVM.
+
+O ABI é a linguagem comum entre:
+
+> Solidity ↔ Bytecode ↔ Ferramentas externas
+
+---
+
+\## 3️⃣ ABI Encoding na ENTRADA do contrato (call data)
+
+Esse é o caso mais conhecido — e você já entende bem — mas vale amarrar.
+
+Quando alguém chama:
+
+\```solidity
+transfer(address to, uint256 amount)
+\```
+
+O campo \`data\` da transação contém:
+
+\- \[ 4 bytes  ] function selector  
+\- \[ 32 bytes ] \`to\`  
+\- \[ 32 bytes ] \`amount\`  
+
+O ABI define:
+
+\- como gerar o selector (\`keccak256(signature)\`)  
+\- como alinhar tipos em blocos de 32 bytes  
+\- como lidar com tipos dinâmicos (\`string\`, \`bytes\`, arrays)  
+
+📌 Aqui o ABI é usado para **entrar** no contrato.
+
+---
+
+\## 4️⃣ ABI Encoding na SAÍDA do contrato (return data)
+
+Aqui entra uma parte que muita gente ignora no começo.
+
+Quando uma função retorna:
+
+\```solidity
+function balanceOf(address user) returns (uint256)
+\```
+
+Internamente a EVM:
+
+\- escreve o valor em memória  
+\- executa \`RETURN(offset, size)\`  
+
+⚠️ Mas quem define **o formato desses bytes**?
+👉 O ABI.
+
+Exemplo:
+
+\```solidity
+return 100;
+\```
+
+É devolvido como:
+
+\- \[ 32 bytes ] \`uint256\`  
+
+E fora do contrato:
+
+\- \`eth_call\`  
+\- \`ethers.js\`  
+\- \`web3.js\`  
+
+sabem exatamente como decodificar isso porque:
+
+> o ABI descreve o layout de saída.
+
+📌 Aqui o ABI é usado para **sair** do contrato.
+
+---
+
+\## 5️⃣ ABI Encoding em ERROS (revert)
+
+Aqui entra o ponto mais sofisticado do seu estudo atual 👌
+
+---
+
+\### 5.1 \`require("string")\`
+
+\```solidity
+require(x > 0, "x must be positive");
+\```
+
+Na prática:
+
+\```solidity
+revert Error("x must be positive");
+\```
+
+Encoding:
+
+\- \[ 4 bytes  ] selector de \`Error(string)\`  
+\- \[ ...      ] string ABI-encoded  
+
+📌 Esse erro **não faz parte da ABI do contrato**.  
+Ele é um padrão **global** da linguagem.
+
+---
+
+\### 5.2 Custom Errors
+
+\```solidity
+error XMustBePositive(uint256 x);
+
+revert XMustBePositive(x);
+\```
+
+Encoding:
+
+\- \[ 4 bytes  ] selector do erro  
+\- \[ 32 bytes ] \`x\`  
+
+Aqui acontece algo **importante** para o modelo mental:
+
+> **Custom errors SÃO parte da ABI pública do contrato.**
+
+Isso significa que:
+
+\- ferramentas externas sabem decodificar  
+\- auditores conhecem o “vocabulário de falhas”  
+\- o erro vira parte do design da interface  
+
+📌 Aqui o ABI é usado para **sinalizar falha de forma estruturada**.
+
+---
+
+\## 6️⃣ ABI Encoding em EVENTS (logs)
+
+Eventos não usam o campo \`data\` da transação,  
+mas usam ABI com **regras próprias**.
+
+\```solidity
+event Transfer(
+    address indexed from,
+    address indexed to,
+    uint256 amount
+);
+\```
+
+Isso vira:
+
+\- \`topics[0]\` → selector do evento  
+\- \`topics[n]\` → parâmetros \`indexed\`  
+\- \`data\` → parâmetros não indexed, ABI-encoded  
+
+Exemplo:
+
+topics:
+\- \[0] \`keccak256("Transfer(address,address,uint256)")\`  
+\- \[1] \`from\`  
+\- \[2] \`to\`  
+
+data:
+\- \[32 bytes] \`amount\`  
+
+📌 Aqui o ABI é usado para **comunicação assíncrona**, fora do fluxo de execução.
+
+Eventos:
+
+\- não podem ser lidos por outros contratos  
+\- existem exclusivamente para o mundo off-chain  
+
+---
+
+\## 7️⃣ Um modelo mental unificado (importante)
+
+Pense assim:
+
+> **ABI Encoding é o formato oficial de mensagem entre contratos e o ecossistema.**
+
+Ele aparece em **4 direções** diferentes:
+
+Direção | Usado para
+--- | ---
+➡️ Entrada | call data (chamada de função)
+⬅️ Saída | return data
+❌ Falha | revert + errors
+📡 Broadcast | eventos / logs
+
+A EVM só carrega **bytes**.  
+O ABI dá **semântica** a esses bytes.
+
+---
+
+\## 8️⃣ Por que isso importa para escrever e auditar contratos
+
+Você já está no ponto certo para essa pergunta, então vamos ser diretos:
+
+\- design de ABI **é design de API**  
+\- erros fazem parte da interface  
+\- eventos são contratos com indexadores  
+\- retornos mal pensados quebram integrações  
+
+📌 ABI mal desenhada = contrato difícil de integrar ou auditar.
+
+Auditoria **não é só**:
+
+> “tem reentrancy?”
+
+É também:
+
+> “essa ABI comunica bem o que o contrato faz  
+> e como ele falha?”
+
+---
+
+\## 9️⃣ Uma provocação (cética, mas útil)
+
+Para testar se o modelo mental fechou mesmo, pense:
+
+> Se eu tivesse que chamar esse contrato **sem Solidity**,  
+> apenas com bytes, eu conseguiria?
+
+Se a resposta for:
+
+> “sim, consigo reconstruir tudo a partir da ABI”
+
+👉 então você **realmente entendeu ABI Encoding**.
+
 
 ---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
