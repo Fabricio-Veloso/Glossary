@@ -1,12 +1,48 @@
 # Glossário de WEB3
 
 ## Sumário:
+(faça uma busca por qualquer um desses termos na lista abaixo para encontra-los em seus respectivos lugares).
+- Tópicos gerais.
+    - O que é uma sidechain?
+    - O que são appchains?
+    - O que são SDKs no contexto de desenvoldimento de ETH ?
+    - O que é compatibilidade EVM?
+    - Solidity e Vyper são linguagens completas?
+    - Diferença entre infra e infra on-chain.
+    - O que são nodes / RPCs?
+    - O que são nodes / RPCs?
+    - O que são relayers e bridges?
+    - O que é MATIC?
+    - O que é escrow?
+    - O que é um contrato “Factory”?
+    - O que é um token ERC-20?
+    - O que são módulos de votação (governance modules)?
+    - O que são serviços off-chain? Eles podem ser manipulados?
+    - O que é usar o OpenZeppelin para padrões?
+    - Proof of Stake (PoS).
+    - Stake.
+    - Validador.
+    - Attestation.
+    - Peso de voto (Stake-weighted voting).
+    - Fork-choice rule.
+    - Finality (Casper FFG).
+    - Tópicos gerais:✂️ Slashing.
+    - “Votar errado” (no contexto do PoS).
+    - Tópicos gerais:💣 Risco econômico.
+    - Incentive Design (Design de Incentivos).
+    - PoW vs PoS — Comparação de Segurança.
+    - Concentração de poder no PoS
+    - Confiança vs Risco
+    - Assinatura, encoding e envio de transações no Ethereum
+    - Tópicos Gerais: RLP (Recursive Length Prefix).
+    - Caminho completo de uma transação (visão geral).
 
-Tópicos gerais.
-Tópicos Práticos.
-Transição Web2 → Web3.
-Como estudar isso de forma eficaz (método, não links).
-Documentação essencial — Como usar sem se perder.
+
+- Tópicos Práticos.
+- Transição Web2 → Web3.
+- Como estudar isso de forma eficaz (método, não links).
+- Documentação essencial — Como usar sem se perder.
+
 ---
 # Tópicos gerais:
 ## 🌍 1) Tópicos gerais: O que é uma sidechain?
@@ -34,7 +70,7 @@ Documentação essencial — Como usar sem se perder.
 
 ---
 
-## 🧩 3) Tópicos gerais: O que são SDKs neste contexto?
+## 🧩 3) Tópicos gerais: O que são SDKs no contexto de desenvoldimento de ETH ?
 - SDK = Software Development Kit
 - No mundo blockchain:
   - ferramentas, templates e contratos-base para criar blockchains ou smart contracts
@@ -539,7 +575,7 @@ O objetivo do encoding eficiente é:
 
 ---
 
-## RLP (Recursive Length Prefix)
+## Tópicos Gerais: RLP (Recursive Length Prefix)
 RLP é um método de encoding binário usado pelo Ethereum para:
 - transações
 - blocos
@@ -581,7 +617,7 @@ No nível do protocolo, JSON nunca é utilizado.
 
 ---
 
-## Caminho completo de uma transação (visão geral)
+## Tópicos Gerais: Caminho completo de uma transação (visão geral)
 1. O usuário cria uma transação via software off-chain (wallet)
 2. A transação é codificada em RLP
 3. O hash da transação codificada é gerado
@@ -590,6 +626,15 @@ No nível do protocolo, JSON nunca é utilizado.
 6. A transação é serializada em bytes
 7. Os bytes são representados em hexadecimal (raw transaction)
 8. O nó RPC faz o broadcast para a rede
+
+
+
+
+
+
+
+
+
 ---
 # Tópicos Práticos
 
