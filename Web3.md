@@ -39,6 +39,16 @@
 
 
 - Tópicos Práticos.
+  - Tópicos Praticos: 🧱 Uso de `require`.
+  - Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica.
+  - (EVM context) Coisas que existem em todo contrato.
+  - Tópicos Práticos: `Indexed`.
+  - Tópicos Práticos: `modifier`.
+  - ABI Encoding.
+
+
+
+
 - Transição Web2 → Web3.
 - Como estudar isso de forma eficaz (método, não links).
 - Documentação essencial — Como usar sem se perder.
@@ -890,7 +900,7 @@ Entender `require` bem cedo muda completamente:
 
 ---
 
-# Tópicos Práticos: 📣 Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica
+# Tópicos Práticos:  Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica
 
 
 ### 2️⃣ O que events são na prática (sem romantizar)
