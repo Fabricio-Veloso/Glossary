@@ -37,6 +37,7 @@
     - Tópicos Gerais: RLP (Recursive Length Prefix).
     - Caminho completo de uma transação (visão geral).
 
+---
 
 - Tópicos Práticos.
   - Tópicos Praticos: 🧱 Uso de `require`.
@@ -45,7 +46,7 @@
   - Tópicos Práticos: `Indexed`.
   - Tópicos Práticos: `modifier`.
   - ABI Encoding.
-
+---
 
 
 
@@ -3358,3 +3359,7 @@ Quer on-chain voting estritamente ou off-chain (Snapshot) com execução on-chai
 Tem preferência por ferramentas (Hardhat vs Foundry) ou quer que eu escolha a stack padrão (Hardhat + ethers)?
 
 Diz aí e eu já te entrego: (A) um esqueleto de contratos + testes, ou (B) roteiro de aprendizado com exercícios práticos e checklists de segurança — ou ambos.
+## Dúvidas:
+- Porque se usa call ao invés de transfer e send hoje em dia?
+
+- Tem como usar mais de um modfier em uma função?
