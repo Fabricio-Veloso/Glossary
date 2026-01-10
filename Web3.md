@@ -40,7 +40,7 @@
 ---
 
 - Tópicos Práticos.
-  - Tópicos Praticos: 🧱 Uso de `require`.
+  - Tópicos Práticos: 🧱 Uso de `require`.
   - Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica.
   - (EVM context) Coisas que existem em todo contrato.
   - Tópicos Práticos: `Indexed`.
@@ -650,7 +650,7 @@ No nível do protocolo, JSON nunca é utilizado.
 ---
 # Tópicos Práticos
 
-## Tópicos Praticos: 🧱 Uso de `require` 
+## Tópicos Práticos: 🧱 Uso de `require` 
 *em Solidity — Validação, Segurança e Semântica*
 
 ---
@@ -1974,7 +1974,7 @@ _;
 
 ---
 
-\## 5️⃣ Quando NÃO usar modifier (mesmo com custom errors)
+## 5️⃣ Quando NÃO usar modifier (mesmo com custom errors)
 
 Aqui entra design — vale ser cético.
 
@@ -2064,7 +2064,7 @@ Se isso já está no seu radar, você está no nível certo para avançar.
 
 ## Tópicos Práticos : ABI Encoding.
 
-\### 1️⃣ O que é ABI Encoding (em uma frase honesta)
+### 1️⃣ O que é ABI Encoding (em uma frase honesta)
 
 ABI Encoding é o **contrato de serialização** entre o mundo EVM e o mundo externo.
 
@@ -2081,7 +2081,7 @@ Nada mais. Nada menos.
 
 ---
 
-\## 2️⃣ A EVM não entende “funções”, “strings” ou “eventos”
+## 2️⃣ A EVM não entende “funções”, “strings” ou “eventos”
 
 Esse ponto é **crítico** para o modelo mental correto.
 
@@ -2106,65 +2106,65 @@ O ABI é a linguagem comum entre:
 
 ---
 
-\## 3️⃣ ABI Encoding na ENTRADA do contrato (call data)
+## 3️⃣ ABI Encoding na ENTRADA do contrato (call data)
 
 Esse é o caso mais conhecido — e você já entende bem — mas vale amarrar.
 
 Quando alguém chama:
 
-\```solidity
+```solidity
 transfer(address to, uint256 amount)
-\```
+```
 
-O campo \`data\` da transação contém:
+O campo `data` da transação contém:
 
-\- \[ 4 bytes  ] function selector  
-\- \[ 32 bytes ] \`to\`  
-\- \[ 32 bytes ] \`amount\`  
+- [ 4 bytes  ] function selector  
+- [ 32 bytes ] `to`  
+- [ 32 bytes ] `amount`  
 
 O ABI define:
 
-\- como gerar o selector (\`keccak256(signature)\`)  
-\- como alinhar tipos em blocos de 32 bytes  
-\- como lidar com tipos dinâmicos (\`string\`, \`bytes\`, arrays)  
+- como gerar o selector (`keccak256(signature)`)  
+- como alinhar tipos em blocos de 32 bytes  
+- como lidar com tipos dinâmicos (`string`, `bytes`, arrays)  
 
 📌 Aqui o ABI é usado para **entrar** no contrato.
 
 ---
 
-\## 4️⃣ ABI Encoding na SAÍDA do contrato (return data)
+## 4️⃣ ABI Encoding na SAÍDA do contrato (return data)
 
 Aqui entra uma parte que muita gente ignora no começo.
 
 Quando uma função retorna:
 
-\```solidity
+```solidity
 function balanceOf(address user) returns (uint256)
-\```
+```
 
 Internamente a EVM:
 
-\- escreve o valor em memória  
-\- executa \`RETURN(offset, size)\`  
+- escreve o valor em memória  
+- executa `RETURN(offset, size)`  
 
 ⚠️ Mas quem define **o formato desses bytes**?
 👉 O ABI.
 
 Exemplo:
 
-\```solidity
+```solidity
 return 100;
-\```
+```
 
 É devolvido como:
 
-\- \[ 32 bytes ] \`uint256\`  
+- [ 32 bytes ] `uint256`  
 
 E fora do contrato:
 
-\- \`eth_call\`  
-\- \`ethers.js\`  
-\- \`web3.js\`  
+- `eth_call`  
+- `ethers.js`  
+- `web3.js`  
 
 sabem exatamente como decodificar isso porque:
 
@@ -2174,46 +2174,46 @@ sabem exatamente como decodificar isso porque:
 
 ---
 
-\## 5️⃣ ABI Encoding em ERROS (revert)
+## 5️⃣ ABI Encoding em ERROS (revert)
 
 Aqui entra o ponto mais sofisticado do seu estudo atual 👌
 
 ---
 
-\### 5.1 \`require("string")\`
+### 5.1 `require("string")`
 
-\```solidity
+```solidity
 require(x > 0, "x must be positive");
-\```
+```
 
 Na prática:
 
-\```solidity
+```solidity
 revert Error("x must be positive");
-\```
+```
 
 Encoding:
 
-\- \[ 4 bytes  ] selector de \`Error(string)\`  
-\- \[ ...      ] string ABI-encoded  
+- [ 4 bytes  ] selector de `Error(string)`  
+- [ ...      ] string ABI-encoded  
 
 📌 Esse erro **não faz parte da ABI do contrato**.  
 Ele é um padrão **global** da linguagem.
 
 ---
 
-\### 5.2 Custom Errors
+### 5.2 Custom Errors
 
-\```solidity
+```solidity
 error XMustBePositive(uint256 x);
 
 revert XMustBePositive(x);
-\```
+```
 
 Encoding:
 
-\- \[ 4 bytes  ] selector do erro  
-\- \[ 32 bytes ] \`x\`  
+- [ 4 bytes  ] selector do erro  
+- [ 32 bytes ] `x`  
 
 Aqui acontece algo **importante** para o modelo mental:
 
@@ -2221,53 +2221,53 @@ Aqui acontece algo **importante** para o modelo mental:
 
 Isso significa que:
 
-\- ferramentas externas sabem decodificar  
-\- auditores conhecem o “vocabulário de falhas”  
-\- o erro vira parte do design da interface  
+- ferramentas externas sabem decodificar  
+- auditores conhecem o “vocabulário de falhas”  
+- o erro vira parte do design da interface  
 
 📌 Aqui o ABI é usado para **sinalizar falha de forma estruturada**.
 
 ---
 
-\## 6️⃣ ABI Encoding em EVENTS (logs)
+## 6️⃣ ABI Encoding em EVENTS (logs)
 
-Eventos não usam o campo \`data\` da transação,  
+Eventos não usam o campo `data` da transação,  
 mas usam ABI com **regras próprias**.
 
-\```solidity
+```solidity
 event Transfer(
     address indexed from,
     address indexed to,
     uint256 amount
 );
-\```
+```
 
 Isso vira:
 
-\- \`topics[0]\` → selector do evento  
-\- \`topics[n]\` → parâmetros \`indexed\`  
-\- \`data\` → parâmetros não indexed, ABI-encoded  
+- `topics[0]` → selector do evento  
+- `topics[n]` → parâmetros `indexed`  
+- `data` → parâmetros não indexed, ABI-encoded  
 
 Exemplo:
 
 topics:
-\- \[0] \`keccak256("Transfer(address,address,uint256)")\`  
-\- \[1] \`from\`  
-\- \[2] \`to\`  
+- [0] `keccak256("Transfer(address,address,uint256)")`  
+- [1] `from`  
+- [2] `to`  
 
 data:
-\- \[32 bytes] \`amount\`  
+- [32 bytes] `amount`  
 
 📌 Aqui o ABI é usado para **comunicação assíncrona**, fora do fluxo de execução.
 
 Eventos:
 
-\- não podem ser lidos por outros contratos  
-\- existem exclusivamente para o mundo off-chain  
+- não podem ser lidos por outros contratos  
+- existem exclusivamente para o mundo off-chain  
 
 ---
 
-\## 7️⃣ Um modelo mental unificado (importante)
+## 7️⃣ Um modelo mental unificado (importante)
 
 Pense assim:
 
@@ -2287,14 +2287,14 @@ O ABI dá **semântica** a esses bytes.
 
 ---
 
-\## 8️⃣ Por que isso importa para escrever e auditar contratos
+## 8️⃣ Por que isso importa para escrever e auditar contratos
 
 Você já está no ponto certo para essa pergunta, então vamos ser diretos:
 
-\- design de ABI **é design de API**  
-\- erros fazem parte da interface  
-\- eventos são contratos com indexadores  
-\- retornos mal pensados quebram integrações  
+- design de ABI **é design de API**  
+- erros fazem parte da interface  
+- eventos são contratos com indexadores  
+- retornos mal pensados quebram integrações  
 
 📌 ABI mal desenhada = contrato difícil de integrar ou auditar.
 
@@ -2309,7 +2309,7 @@ Auditoria **não é só**:
 
 ---
 
-\## 9️⃣ Uma provocação (cética, mas útil)
+## 9️⃣ Uma provocação (cética, mas útil)
 
 Para testar se o modelo mental fechou mesmo, pense:
 
@@ -2341,9 +2341,9 @@ Somente estas coisas vêm de `keccak256`:
 
 | Elemento | Origem |
 |--------|--------|
-| Function selector (4 bytes) | keccak256\("fn(type,...)")\[:4] |
-| Error selector (4 bytes) | keccak256\("ErrorName(type,...)")\[:4] |
-| Event signature (32 bytes) | keccak256\("EventName(type,...)") |
+| Function selector (4 bytes) | keccak256("fn(type,...)")[:4] |
+| Error selector (4 bytes) | keccak256("ErrorName(type,...)")[:4] |
+| Event signature (32 bytes) | keccak256("EventName(type,...)") |
 
 📌 **Somente identificadores vêm de hash.**
 
@@ -2363,12 +2363,12 @@ Parâmetros como:
 
 Exemplo:
 
-\revert XMustBePositive\(5);
+revert XMustBePositive(5);
 
 **Encoding conceitual:**
 
-- \[4 bytes ] selector do erro (hash)  
-- \[32 bytes] 5 ← valor literal, **não hash**
+- [4 bytes ] selector do erro (hash)  
+- [32 bytes] 5 ← valor literal, **não hash**
 
 ---
 
@@ -2433,7 +2433,7 @@ O significado vem de **ordem + tipo**, nunca de nomes.
 
 Use este modelo mental:
 
-\encode\(types[], values[]) → bytes
+encode(types[], values[]) → bytes
 
 Exemplo:
 
@@ -2443,8 +2443,8 @@ values = [0xabc..., 100]
 
 Resultado:
 
-- \[32 bytes address padded]  
-- \[32 bytes uint256]  
+- [32 bytes address padded]  
+- [32 bytes uint256]  
 
 📌 Nenhum nome entra no encoding  
 📌 O contrato “sabe” o significado porque ele conhece a **assinatura**
@@ -2457,14 +2457,14 @@ Aqui o ABI deixa de parecer “tabela” e vira **layout de memória**.
 
 Exemplo:
 
-\function foo\(string s, uint256 x)
+function foo(string s, uint256 x)
 
 Encoding conceitual:
 
-- \[0] offset para string  
-- \[1] x  
-- \[2] length da string  
-- \[3..] bytes da string  
+- [0] offset para string  
+- [1] x  
+- [2] length da string  
+- [3..] bytes da string  
 
 Ou seja:
 
@@ -2534,11 +2534,11 @@ ambos sejam serializados em **32 bytes**, eles são **tipos distintos no ABI**.
 
 O selector é gerado a partir da **assinatura textual**:
 
-- add\(uint256)  
-- add\(uint128)  
+- add(uint256)  
+- add(uint128)  
 
 Essas strings são diferentes →  
-keccak256\(...\) diferente →  
+keccak256(...) diferente →  
 **selector diferente**
 
 📌 **Só isso já muda o ABI.**
@@ -2587,7 +2587,7 @@ Vamos ser cirúrgicos.
 
 ### ❌ O que NÃO muda
 
-- Tamanho do slot \(32 bytes)  
+- Tamanho do slot (32 bytes)  
 - Alinhamento  
 - Padding  
 
@@ -2595,12 +2595,12 @@ Vamos ser cirúrgicos.
 
 - Assinatura da função  
 - Function selector  
-- ABI JSON \(type: uint256 vs uint128)  
+- ABI JSON (type: uint256 vs uint128)  
 - Decodificação por ferramentas externas  
 - Compatibilidade com contratos antigos  
 
 📌 **Resultado prático:**  
-Um contrato que espera add\(uint256) **não reconhece** add\(uint128),  
+Um contrato que espera add(uint256) **não reconhece** add(uint128),  
    mesmo que você passe os **mesmos bytes**.
 
    ---
@@ -2632,11 +2632,11 @@ Um contrato que espera add\(uint256) **não reconhece** add\(uint128),
 
 Se você trocar:
 
-- add\(uint256)
+- add(uint256)
 
     por:
 
-- add\(uint128)
+- add(uint128)
 
     O ABI muda de:
     ``` json
@@ -2667,12 +2667,12 @@ Mesmo sem mudar o bytecode de storage.
 
 Quando você faz:
 
-\await counter.add\(5);
+await counter.add(5);
 
 O ethers.js:
 
 1. lê o ABI  
-2. encontra add\(uint256)  
+2. encontra add(uint256)  
 3. gera o selector  
 4. faz o ABI encoding  
 5. envia a transação  
@@ -2741,12 +2741,12 @@ Nada mais.
 
 Suponha que o ABI tenha:
 
-- add\(uint256)
+- add(uint256)
 
 O ethers faz:
 
 1. lê o ABI  
-2. encontra "add\(uint256)"  
+2. encontra "add(uint256)"  
 3. gera a assinatura textual  
 4. faz keccak256  
 5. pega os primeiros 4 bytes  
@@ -2798,7 +2798,7 @@ Resposta honesta:
 
 Se você trocar no ABI para:
 
-- function add\(uint128 amount)
+- function add(uint128 amount)
 
 O código TS não muda.  
 O valor 5 não muda.  
