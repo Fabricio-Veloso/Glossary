@@ -3212,11 +3212,750 @@ Você não está só tratando erro.
 Você está **definindo os limites formais do sistema**.
 
 
+---
+
+## 1️⃣ “Projetar todos os erros antes” — o que isso realmente significa
+
+### Dúvida central
+
+> Então, na prática, é melhor fazer **toda a projeção de erros** e criar todos os erros **antes** de escrever o código (o que for possível) e só depois escrever o contrato, correto?  
+> Evitando o uso de \`require\`, já que são mais caros, além de deixar o contrato mais barato, mais documentado e capaz de alimentar melhor estruturas off-chain?
+
+Resposta curta: **sim, com nuance**.  
+Resposta correta: **projetar limites antes, não necessariamente todos os erros imagináveis**.
+
+---
+
+
+Não é sobre sair listando erros aleatoriamente.  
+É sobre **projetar os limites formais do sistema antes do código**.
+
+Erros são a **materialização desses limites**.
+
+---
+
+### 🔹 O que faz muito sentido projetar antes
+
+Principalmente:
+
+- invariantes
+- pré-condições
+- barreiras de segurança
+
+Exemplos clássicos:
+
+- \`Unauthorized\`
+- \`ZeroAddress\`
+- \`InvalidState\`
+- \`Paused\`
+- \`OverflowNotAllowed\` (quando aplicável)
+
+Esses erros:
+
+- dificilmente mudam
+- viram parte da ABI pública
+- guiam a implementação
+
+➡️ Aqui, projetar antes **melhora o design**.
+
+---
+
+### 🔹 O que NÃO faz sentido congelar cedo demais
+
+- regras de negócio ainda instáveis
+- protótipos
+- contratos descartáveis
+
+Forçar *error-driven design* quando o domínio ainda é nebuloso:
+
+- cria ruído
+- gera churn
+- vira overengineering
+
+➡️ bom design ≠ rigidez prematura.
+
+---
+
+## 2️⃣ “Evitar \`require\` então é sempre melhor?”
+
+Não de forma dogmática.
+
+✔️ Em contratos de produção:
+➡️ **sim, na maioria dos casos**
+
+❌ Em:
+- testes rápidos
+- scripts
+- contratos educacionais
+
+\`require\` ainda é ok.
+
+📌 O ponto **não é banir \`require\`**.  
+📌 O ponto é **não usar string como API pública**.
+
+---
+
+## 3️⃣ O ganho real (sem hype)
+
+Você entendeu corretamente os ganhos:
+
+✔️ contrato mais barato  
+✔️ bytecode menor  
+✔️ erro vira sinal semântico off-chain  
+
+Ajuste importante:
+
+“mais documentado” **não** no sentido de comentários,  
+mas no sentido de **documentação executável e verificável**.
+
+Isso é muito mais forte.
+
+---
+
+## 4️⃣ Aplicando em um Counter mínimo (ancorando o modelo)
+
+### 📌 Requisitos do sistema (antes do código)
+
+- contador começa em 0
+- só o owner pode alterar
+- não pode incrementar acima de um limite
+- não pode decrementar abaixo de 0
+
+➡️ Esses limites **já são os erros**.
+
+---
+
+### 🧱 Projeção de erros (primeiro!)
+
+\`error Unauthorized(address caller);\`  
+\`error CounterOverflow(uint256 value, uint256 max);\`  
+\`error CounterUnderflow(uint256 value);\`
+
+Antes de qualquer função existir,  
+o sistema **já está definido**.
+
+---
+
+### 🧩 Implementação do contrato
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Counter {
+    error Unauthorized(address caller);
+    error CounterOverflow(uint256 value, uint256 max);
+    error CounterUnderflow(uint256 value);
+
+    address public immutable owner;
+    uint256 public count;
+    uint256 public constant MAX = 10;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function increment() external {
+        if (msg.sender != owner) {
+            revert Unauthorized(msg.sender);
+        }
+
+        if (count >= MAX) {
+            revert CounterOverflow(count, MAX);
+        }
+
+        count++;
+    }
+
+    function decrement() external {
+        if (msg.sender != owner) {
+            revert Unauthorized(msg.sender);
+        }
+
+        if (count == 0) {
+            revert CounterUnderflow(count);
+        }
+
+        count--;
+    }
+}
+```
+
+## 5️⃣ O que esse exemplo prova
+
+Esse contrato:
+
+- não usa \`require\`
+- não usa strings
+- expõe seus limites formais
+- é autoexplicativo para humanos **e** máquinas
+
+Quem consome:
+
+- sabe exatamente por que pode falhar
+- reage programaticamente
+- audita sem contexto externo
+
+➡️ **Error-oriented design funcionando.**
+
+---
+
+## 6️⃣ Insight mais valioso (guarda esse)
+
+Quando você projeta erros **antes** do código:
+
+> o código vira consequência do design,  
+> não o contrário.
+
+Isso é um padrão mental poderoso para:
+
+- contratos
+- protocolos
+- auditoria
+
+---
+
+## 7️⃣ Ordem dos próximos passos (faz sentido)
+
+A ordem que você sugeriu é excelente:
+
+1️⃣ consolidar bem esse modelo  
+2️⃣ reforçar com exemplos pequenos  
+3️⃣ depois entrar em versionamento / breaking changes  
+
+Porque:
+
+- breaking change só existe quando há API
+- errors fazem parte da API
+
+➡️ **A progressão está correta.**
+
+---
+
+## 8️⃣ Agora: versionamento e breaking changes (entrada)
+
+Erros **quebram compatibilidade**.
+
+Mudar:
+
+- nome
+- assinatura
+- parâmetros
+
+➡️ muda selector  
+➡️ quebra integradores  
+➡️ quebra testes  
+➡️ quebra promessas  
+
+Por isso:
+
+> **errors são promessas públicas.**
+
+Quebrar error = quebrar promessa.
+
+---
+
+## 9️⃣ Caminho que vamos seguir a partir daqui
+
+Entramos agora em:
+
+- breaking change real em Solidity
+- versionamento de errors
+- estratégias compatíveis vs honestamente incompatíveis
+- como testar isso tecnicamente no Hardhat
+
+Isso agora faz sentido **porque a base está sólida**.
+
+Seguimos pelo caminho técnico primeiro —  
+e depois subimos para design com muito mais clareza.
+
+
+## Versionamento de Errors e Breaking Changes em Solidity
+
+Perfeito. Então agora a gente entra na parte que quase ninguém trata com seriedade —  
+e que, para quem escreve contratos do zero ou audita, é uma das mais importantes.
+
+Vou estruturar assim (bem direto e progressivo):
+
+- O que é breaking change de verdade em Solidity  
+- Por que errors quebram compatibilidade  
+- Exemplos concretos (bons e ruins)  
+- Regras práticas para versionar errors  
+- Como um auditor enxerga isso  
+
+---
+
+## 1️⃣ O que é breaking change em contratos (sem ilusão)
+
+Em web tradicional, você “deploya de novo”.  
+Em contratos:
+
+- o código é imutável  
+- consumidores existem fora do seu controle  
+
+Então breaking change **não é**:
+
+- “compila”
+- “passa nos testes”
+- “funciona no frontend atual”
+
+Breaking change **é**:
+
+- alguém que integrava deixa de conseguir reagir corretamente  
+
+E isso inclui:
+
+- funções  
+- eventos  
+- errors  
+
+---
+
+## 2️⃣ Por que errors quebram compatibilidade
+
+Lembra disso?
+
+\`error Unauthorized(address caller);\`
+
+Isso gera:
+
+- nome  
+- tipos  
+- ordem  
+- selector (bytes4)  
+
+Qualquer mudança aqui **muda o selector**.
+
+### 🔴 Mudanças que quebram ABI
+
+\`error Unauthorized();\`  
+→ **QUEBRA** (assinatura mudou)
+
+\`error NotAuthorized(address caller);\`  
+→ **QUEBRA** (nome mudou)
+
+\`error Unauthorized(address caller, uint256 time);\`  
+→ **QUEBRA** (parâmetros mudaram)
+
+Mesmo que:
+
+- o contrato “funcione”
+- a regra de negócio seja a mesma  
+
+Para quem integra:  
+➡️ **é outro erro**
+
+---
+
+## 3️⃣ Exemplo concreto: Counter v1 → v2 (quebrando tudo)
+
+### ✅ v1 (bom)
+
+\`error CounterOverflow(uint256 value, uint256 max);\`
+
+Frontend / bot:
+
+\`if (e.errorName === "CounterOverflow") { disableButton(); }\`
+
+### ❌ v2 (ingênuo)
+
+\`error MaxValueReached(uint256 current);\`
+
+Mesmo significado semântico.  
+Mesmo comportamento.  
+
+Mas…
+
+➡️ **100% breaking change**
+
+Tudo que dependia do erro:
+
+- falha  
+- cai no catch genérico  
+- perde semântica  
+
+---
+
+## 4️⃣ Versão “profissional” de v2 (compatível)
+
+Você tem três estratégias legítimas.
+
+### 🟢 Estratégia A — Manter o erro antigo
+
+\`error CounterOverflow(uint256 value, uint256 max);\`
+
+Mesmo se internamente você mudou a lógica.
+
+➡️ estabilidade máxima  
+➡️ zero breaking change  
+
+---
+
+### 🟡 Estratégia B — Introduzir novo erro sem remover o antigo
+
+\`error CounterOverflow(uint256 value, uint256 max);\`  
+\`error MaxValueReached(uint256 current);\`
+
+E decidir em código qual usar.
+
+➡️ backward-compatible  
+➡️ mais complexo  
+➡️ exige documentação  
+
+---
+
+### 🔴 Estratégia C — Quebrar explicitamente (major version)
+
+- novo contrato  
+- novo endereço  
+- ABI nova  
+- users migram conscientemente  
+
+➡️ isso é honesto  
+➡️ isso é aceitável  
+➡️ isso é raro  
+
+---
+
+## 5️⃣ Regras práticas para versionar errors (guarda isso)
+
+### ✔️ 1. Erros públicos são quase imutáveis
+
+Se você publicou:
+
+\`error Unauthorized(address);\`
+
+Considere isso **congelado**.
+
+---
+
+### ✔️ 2. Nome importa mais que mensagem
+
+Evite:
+
+\`error Invalid();\`
+
+Prefira:
+
+\`error Unauthorized();\`  
+\`error InvalidState();\`  
+\`error ZeroAddress();\`
+
+Eles sobrevivem melhor ao tempo.
+
+---
+
+### ✔️ 3. Parâmetros também fazem parte do contrato
+
+Não adicione parâmetros “porque agora parece útil”.
+
+Isso:
+
+\`error Unauthorized(address caller);\`
+
+Não pode virar:
+
+\`error Unauthorized(address caller, uint256 time);\`
+
+Sem quebrar.
+
+---
+
+### ✔️ 4. Agrupe errors como API
+
+Boa prática:
+
+\`library Errors {  
+    error Unauthorized(address caller);  
+    error InvalidState();  
+}\`
+
+➡️ deixa explícito que aquilo é “interface”
+
+---
+
+## 6️⃣ Como um auditor enxerga isso
+
+Quando um auditor vê:
+
+- errors bem nomeados  
+- poucos  
+- estáveis  
+- coerentes  
+
+Ele pensa:
+
+> “esse contrato foi projetado, não improvisado”
+
+Quando vê:
+
+- strings soltas  
+- errors mudando sem razão  
+- erros genéricos  
+
+Ele pensa:
+
+> “isso vai quebrar integração”
+
+Isso **pesa em relatório**.
+
+---
+
+## 7️⃣ O insight final (muito importante)
+
+Erros são promessas.
+
+Quando você expõe um error:
+
+- você promete que aquela condição existirá  
+- você promete que integradores podem confiar nisso  
+
+Quebrar error ≈ **quebrar promessa**.
+
+---
+
+## 8️⃣ Próximo passo natural (bem alinhado)
+
+Agora faz muito sentido avançar para:
+
+- como testar compatibilidade de errors no Hardhat  
+- ou como planejar v2 sem quebrar v1  
+- ou como documentar errors como parte do protocolo  
+
+👉 Próxima decisão técnica:
+
+seguir em **Hardhat + testes + selectors**  
+ou subir um nível e discutir **design e versionamento de protocolos**.
+
+Ambos fazem sentido — a escolha define onde você quer investir energia agora.
+
+
+## Testando, protegendo e versionando custom errors no Hardhat (nível metal)
+
+Perfeito. Então vamos descer até o metal, mas sempre com o radar ligado para **por que isso importa** — não só como fazer.
+
+Vou organizar em blocos curtos e objetivos:
+
+- Como testar custom errors no Hardhat  
+- Como garantir que selectors não mudaram  
+- Como detectar breaking change automaticamente  
+- Um micro-workflow técnico saudável  
+- O que você passa a “ver” depois disso  
+
+---
+
+## 1️⃣ Testando custom errors no Hardhat (forma correta)
+
+Assumindo:
+
+- Hardhat  
+- ethers  
+- mocha / chai  
+
+### Exemplo com o Counter
+
+```ts
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+describe("Counter", () => {
+  it("reverts with CounterOverflow", async () => {
+    const [owner] = await ethers.getSigners();
+    const Counter = await ethers.getContractFactory("Counter");
+    const counter = await Counter.deploy();
+
+    // chega no limite
+    for (let i = 0; i < 10; i++) {
+      await counter.increment();
+    }
+
+    await expect(counter.increment())
+      .to.be.revertedWithCustomError(counter, "CounterOverflow");
+  });
+});
+```
+
+🔎 Isso testa:
+
+- nome do error  
+- ABI  
+- selector  
+
+Sem string. Sem heurística.
+
+---
+
+### Testando parâmetros do error
+
+```ts
+await expect(counter.increment())
+  .to.be.revertedWithCustomError(counter, "CounterOverflow")
+  .withArgs(10, 10);
+```
+
+➡️ Se mudar a **ordem**, **tipo** ou **quantidade** de parâmetros:  
+o teste quebra imediatamente.
+
+Isso é **ouro para versionamento**.
+
+---
+
+## 2️⃣ Validando selectors explicitamente (nível auditor)
+
+Todo error tem um selector:
+
+`bytes4(keccak256("CounterOverflow(uint256,uint256)"))`
+
+No Hardhat:
+
+```ts
+const iface = counter.interface;
+
+const selector = iface.getError("CounterOverflow").selector;
+
+expect(selector).to.equal("0x...");
+```
+
+Você pode:
+
+- salvar selectors esperados  
+- detectar mudanças silenciosas  
+
+---
+
+## 3️⃣ Detectando breaking change automaticamente
+
+Aqui está um padrão **muito poderoso**.
+
+### 📌 Snapshot de ABI
+
+No CI:
+
+- compile  
+- salve ABI antiga  
+- compare com ABI nova  
+
+Se:
+
+- error sumiu  
+- error mudou assinatura  
+- error mudou nome  
+
+➡️ **falha o pipeline**
+
+Mesmo sem olhar código.
+
+### Exemplo simples de comparação (conceitual)
+
+```ts
+const oldErrors = extractErrors(oldAbi);
+const newErrors = extractErrors(newAbi);
+
+expect(newErrors).to.deep.equal(oldErrors);
+```
+
+Isso trata error como **contrato público**, não detalhe interno.
+
+---
+
+## 4️⃣ Micro-workflow técnico saudável (curto e prático)
+
+Quando você cria um contrato novo:
+
+1️⃣ liste os errors  
+2️⃣ escreva testes **só de revert**  
+3️⃣ implemente a lógica  
+4️⃣ rode gas reporter  
+5️⃣ congele a ABI pública  
+
+Quando você muda algo:
+
+- error mudou?  
+  → **versiona**  
+
+- não mudou?  
+  → **safe**  
+
+---
+
+## 5️⃣ O que muda na sua cabeça depois disso
+
+Depois que você começa a:
+
+- testar errors  
+- comparar selectors  
+- versionar ABI  
+
+Você para de pensar:
+
+> “o contrato funciona?”
+
+E passa a pensar:
+
+> “o contrato é estável?”
+
+Isso é **mentalidade de protocolo**.
+
+---
+
+## 6️⃣ Um detalhe que pouca gente usa (mas vale muito)
+
+Você pode criar um teste **só para ABI**:
+
+```ts
+it("ABI compatibility", async () => {
+  const abi = require("../artifacts/contracts/Counter.sol/Counter.json").abi;
+
+  const errors = abi.filter((x: any) => x.type === "error");
+
+  expect(errors).to.deep.equal([
+    {
+      type: "error",
+      name: "Unauthorized",
+      inputs: [{ type: "address", name: "caller" }]
+    },
+    {
+      type: "error",
+      name: "CounterOverflow",
+      inputs: [
+        { type: "uint256", name: "value" },
+        { type: "uint256", name: "max" }
+      ]
+    },
+    {
+      type: "error",
+      name: "CounterUnderflow",
+      inputs: [{ type: "uint256", name: "value" }]
+    }
+  ]);
+});
+```
+
+➡️ Isso é **contrato congelado em teste**.
+
+---
+
+## 7️⃣ Próximo passo (agora sim design faz sentido)
+
+Agora que:
+
+- você sabe testar  
+- sabe detectar breaking change  
+- sabe proteger a ABI  
+
+O próximo passo natural é:
+
+➡️ como decidir quais errors são **públicos** e quais são **internos**  
+➡️ como evoluir o protocolo **sem quebrar consumidores**  
+➡️ quando **quebrar é aceitável**  
+
+A partir daqui, design deixa de ser abstrato —  
+ele passa a ser **ancorado em garantias técnicas reais**.
 
 
 
 
-
+---
 # Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
 
 ## 🧠 CAMADA 1 — Mudar o modelo mental (fundamental)
@@ -3262,6 +4001,220 @@ Você está **definindo os limites formais do sistema**.
 - necessidade de paranoia saudável
 
 ---
+
+
+## Testes, selectors e proteção de ABI com custom errors (Hardhat)
+
+### Exemplo de teste com custom error
+
+\```ts
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+describe("Counter", () => {
+  it("reverts with CounterOverflow", async () => {
+    const [owner] = await ethers.getSigners();
+    const Counter = await ethers.getContractFactory("Counter");
+    const counter = await Counter.deploy();
+
+    // chega no limite
+    for (let i = 0; i < 10; i++) {
+      await counter.increment();
+    }
+
+    await expect(counter.increment())
+      .to.be.revertedWithCustomError(counter, "CounterOverflow");
+  });
+});
+\```
+
+🔎 Isso testa:
+
+- nome do error  
+- ABI  
+- selector  
+
+Sem string. Sem heurística.
+
+---
+
+### Testando parâmetros do error
+
+\```ts
+await expect(counter.increment())
+  .to.be.revertedWithCustomError(counter, "CounterOverflow")
+  .withArgs(10, 10);
+\```
+
+➡️ Se mudar a **ordem**, **tipo** ou **quantidade** de parâmetros:  
+o teste quebra imediatamente.
+
+Isso é **ouro para versionamento**.
+
+---
+
+## 2️⃣ Validando selectors explicitamente (nível auditor)
+
+Todo error tem um selector:
+
+\`bytes4(keccak256("CounterOverflow(uint256,uint256)"))\`
+
+No Hardhat:
+
+\```ts
+const iface = counter.interface;
+
+const selector = iface.getError("CounterOverflow").selector;
+
+expect(selector).to.equal("0x...");
+\```
+
+Você pode:
+
+- salvar selectors esperados  
+- detectar mudanças silenciosas  
+
+---
+
+## 3️⃣ Detectando breaking change automaticamente
+
+Aqui está um padrão muito poderoso.
+
+### 📌 Snapshot de ABI
+
+No CI:
+
+- compile  
+- salve a ABI antiga  
+- compare com a ABI nova  
+
+Se:
+
+- error sumiu  
+- error mudou assinatura  
+- error mudou nome  
+
+➡️ **falha o pipeline**, mesmo sem olhar código.
+
+### Exemplo simples de comparação (conceitual)
+
+\```ts
+const oldErrors = extractErrors(oldAbi);
+const newErrors = extractErrors(newAbi);
+
+expect(newErrors).to.deep.equal(oldErrors);
+\```
+
+Isso trata error como **contrato público**, não como detalhe interno.
+
+---
+
+## 4️⃣ Workflow técnico saudável (curto e prático)
+
+Quando você cria um contrato novo:
+
+1️⃣ liste os errors  
+2️⃣ escreva testes **só de revert**  
+3️⃣ implemente a lógica  
+4️⃣ rode o gas reporter  
+5️⃣ congele a ABI pública  
+
+Quando você muda algo:
+
+- error mudou?  
+  → **versiona**  
+
+- não mudou?  
+  → **safe**  
+
+---
+
+## 5️⃣ O que muda na sua cabeça depois disso
+
+Depois que você começa a:
+
+- testar errors  
+- comparar selectors  
+- versionar ABI  
+
+Você para de pensar:
+
+> “o contrato funciona?”
+
+E passa a pensar:
+
+> “o contrato é estável?”
+
+Isso é **mentalidade de protocolo**.
+
+---
+
+## 6️⃣ Um detalhe que pouca gente usa (mas vale muito)
+
+Você pode criar um teste **exclusivo para ABI**:
+
+\```ts
+it("ABI compatibility", async () => {
+  const abi = require("../artifacts/contracts/Counter.sol/Counter.json").abi;
+
+  const errors = abi.filter((x: any) => x.type === "error");
+
+  expect(errors).to.deep.equal([
+    {
+      type: "error",
+      name: "Unauthorized",
+      inputs: [{ type: "address", name: "caller" }]
+    },
+    {
+      type: "error",
+      name: "CounterOverflow",
+      inputs: [
+        { type: "uint256", name: "value" },
+        { type: "uint256", name: "max" }
+      ]
+    },
+    {
+      type: "error",
+      name: "CounterUnderflow",
+      inputs: [{ type: "uint256", name: "value" }]
+    }
+  ]);
+});
+\```
+
+➡️ Isso é **contrato congelado em teste**.
+
+---
+
+## 7️⃣ Próximo passo (agora sim design faz sentido)
+
+Agora que:
+
+- você sabe testar  
+- sabe detectar breaking change  
+- sabe proteger a ABI  
+
+O próximo passo natural é:
+
+➡️ decidir quais errors são **públicos** e quais são **internos**  
+➡️ aprender a evoluir o protocolo **sem quebrar consumidores**  
+➡️ entender **quando quebrar é aceitável**
+
+A partir daqui, design deixa de ser abstrato  
+e passa a ser **ancorado em garantias técnicas reais**.
+````
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## Transição Web2 → Web3: 🧩 CAMADA 2 — Base técnica mínima (para não ficar boiando)
