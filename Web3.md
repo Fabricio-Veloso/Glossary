@@ -46,7 +46,7 @@
   - Tópicos Práticos: `Indexed`.
   - Tópicos Práticos: `modifier`.
   - ABI Encoding.
-  - Custom errors
+  - Tópicos Práticos: Custom errors
 ---
 
 
@@ -2863,8 +2863,353 @@ A única diferença:
 
 ---
 
+## Tópicos Práticos: Custom errors
+
+## Contexto da dúvida
+
+Pergunta central:
+
+> “Custom errors são só isso mesmo?  
+> É literalmente declarar `error Nome();` e depois dar `revert Nome();`?  
+> Não tem mais nada importante que eu deveria saber?”
+
+A intuição está correta — **eles parecem simples demais**.  
+E isso costuma acender exatamente a desconfiança certa.
+
+---
+
+## 1️⃣ A sintaxe básica (sem truque escondido)
+
+Sim. No nível mais simples, é exatamente isso:
+
+error XMustBePositive();
+``` solidity
+if (x <= 0) {
+revert XMustBePositive();
+}
+```
+
+Não existe:
+
+- string
+- message
+- require
+- exceção escondida
+- lógica implícita
+
+Você:
+
+1. declara o erro (fora das funções, como structs)
+2. reverte chamando o erro
+
+📌 Até aqui: ✔️ é só isso mesmo.
+
+Mas isso é apenas o **caso mínimo**.
+
+---
+
+## 2️⃣ Então por que custom errors existem? (o problema real)
+
+O `require(..., "string")` tem **dois problemas sérios** em contratos reais.
+
+---
+
+### 🔴 1. Gas e bytecode
+
+Quando você escreve:
+
+require(x > 0, "x must be positive");
 
 
+O compilador:
+
+- embute a string inteira no bytecode
+- gera código para copiar a string para memory
+- ABI-encode a string
+- retorna isso no revert
+
+➡️ Resultado:
+
+- bytecode maior
+- deploy mais caro
+- revert caro
+- custo pago mesmo que o erro nunca aconteça
+
+Com custom error:
+
+error XMustBePositive();
+
+if (x <= 0) revert XMustBePositive();
+
+
+No bytecode existe apenas:
+
+- selector do erro (4 bytes)
+- nenhum texto
+- nenhum dynamic data
+
+➡️ Resultado:
+
+- bytecode menor
+- revert MUITO mais barato
+- menos ruído em auditoria
+
+---
+
+### 🔴 2. Semântica fraca com string
+
+Isso aqui:
+
+require(msg.sender == owner, "only owner");
+
+
+Para a EVM é apenas:
+
+> “reverteu com uma string”
+
+Já isso:
+
+error NotOwner(address caller);
+
+if (msg.sender != owner) {
+revert NotOwner(msg.sender);
+}
+
+
+Carrega semântica estrutural:
+
+- erro tem nome
+- erro é tipado
+- erro pode carregar dados
+- erro é decodificável offchain
+
+➡️ Erro vira parte da **API do contrato**, não texto de debug.
+
+---
+
+## 3️⃣ Custom errors podem (e devem) ter parâmetros
+
+Eles não são só nomes.
+
+error InsufficientBalance(uint256 available, uint256 required);
+
+if (balance < amount) {
+revert InsufficientBalance(balance, amount);
+}
+
+
+Isso permite:
+
+- frontends mostrarem mensagens melhores
+- testes validarem exatamente qual erro ocorreu
+- SDKs reagirem de forma determinística
+
+⚠️ Mesmo com parâmetros, custom errors ainda são mais baratos que strings.
+
+---
+
+## 4️⃣ Onde declarar custom errors (escopo importa)
+
+Você pode declarar errors:
+
+- dentro do contrato
+- em interfaces
+- em arquivos compartilhados
+
+Exemplo comum:
+
+interface Errors {
+error NotOwner();
+error ZeroAddress();
+}
+
+
+Uso:
+
+revert Errors.NotOwner();
+
+
+📌 Isso já é **design de API e padronização**, não só sintaxe.
+
+---
+
+## 5️⃣ require vs revert + custom error
+
+Essas duas formas são equivalentes no controle de fluxo:
+
+require(x > 0);
+
+if (x <= 0) revert();
+
+
+Mas:
+
+- custom error **só funciona com revert**
+- require não aceita custom error
+
+➡️ Isso força:
+
+- validações explícitas
+- fluxo mais claro
+- separação entre regra e comunicação
+
+Isso é intencional no design da linguagem.
+
+---
+
+## 6️⃣ Pegadinhas importantes (vale saber cedo)
+
+### ⚠️ 1. Errors não são herdados magicamente
+
+Declarar um error em um contrato base não o torna automaticamente visível em outros arquivos.
+
+➡️ Organização de código importa.
+
+---
+
+### ⚠️ 2. O nome do erro importa MUITO
+
+Isso é ruim:
+
+error Error1();
+
+
+Isso é bom:
+
+error UnauthorizedCaller(address caller);
+
+
+Porque:
+
+- erro vira linguagem do contrato
+- você escreve para humanos + ferramentas
+- nome é parte da documentação
+
+---
+
+### ⚠️ 3. Custom error não é exceção “high-level”
+
+Eles:
+
+- não têm stack trace
+- não têm mensagem humana embutida
+- dependem de decoding offchain
+
+📌 Erro aqui é **protocolo**, não UX.
+
+---
+
+## 7️⃣ Quando NÃO usar custom errors
+
+Casos aceitáveis para `require(string)`:
+
+- contratos muito pequenos
+- protótipos rápidos
+- exemplos didáticos
+- código descartável
+
+Em produção, bibliotecas e contratos reutilizáveis:
+
+➡️ custom error quase sempre é a escolha correta.
+
+---
+
+## 8️⃣ Gas e bytecode — impacto real (Hardhat)
+
+Comparando dois contratos equivalentes:
+
+### Com string
+
+require(x > 0, "x must be positive");
+
+
+- string embutida no bytecode
+- bytecode maior
+- deploy mais caro
+
+### Com custom error
+
+error XMustBePositive();
+if (x == 0) revert XMustBePositive();
+
+
+- só selector bytes4
+- bytecode menor
+- revert mais barato
+
+📌 Em contratos grandes, isso acumula bastante.
+
+---
+
+## 9️⃣ Custom errors fazem parte da ABI pública
+
+Isso é o salto conceitual importante.
+
+Errors aparecem no ABI JSON:
+
+{
+"type": "error",
+"name": "XMustBePositive",
+"inputs": []
+}
+
+
+Isso permite:
+
+- frontends decodificarem `errorName`
+- testes esperarem `Error.selector`
+- ferramentas integrarem sem heurística
+
+➡️ Error vira **first-class citizen** da interface.
+
+---
+
+## 🔟 Error como API (analogia útil)
+
+Pense assim:
+
+Camada → Analogia
+
+- Função → endpoint
+- Evento → log / output
+- Error → HTTP status code
+
+Um bom error é como:
+
+- 401 Unauthorized
+- 403 Forbidden
+- 409 Conflict
+
+Não como:
+
+- "ops, deu ruim"
+
+---
+
+## 1️⃣1️⃣ Checklist mental rápido
+
+Sempre que escrever um error, pergunte:
+
+- Esse erro é um limite formal do sistema?
+- Um integrador externo deveria reagir a ele?
+- Esse nome explica claramente a falha?
+- Esse erro vai existir daqui a 1 ano?
+
+Se “sim” para 2 ou mais:
+➡️ ele é parte da ABI pública.
+
+---
+
+## 1️⃣2️⃣ Conclusão prática
+
+Custom errors:
+
+- não são só sintaxe nova
+- não são micro-otimização
+- são design de protocolo
+
+Você não está só tratando erro.  
+Você está **definindo os limites formais do sistema**.
 
 
 
