@@ -41,10 +41,64 @@
 
 - Tópicos Práticos.
   - Tópicos Práticos: 🧱 Uso de `require`.
+    - O que é `require`, de verdade (nível EVM) 
+    - require vs revert vs assert
+    - Regras práticas de uso do require
+    - Por que contratos seguros usam tanto require
+    - Exemplos — bom vs ruim
+    - Checklist mental simples antes de usar require
+
   - Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica.
+    - O que events são na prática (sem romantizar)
+    - Quando usar events (regra simples)
+    - Aplicando events em um Counter
+    - 🔥Emitindo events (parte prática)
+    - Como isso é usado fora do contrato (visão prática)
+    - Checkpoint mental - diferenças entre storage e Events
+    - emit pode ser usado para outras coisas? (não)
+        - O que `emit` faz exatamente
+        - O que NÃO existe (no contexto de emit) 
+        - recaptulação para "emit"  
+    - Precisa declarar um event antes de usar `emit`?
+        - Por que isso é obrigatório?
+        - Analogia rápida com funções comuns
+        - Regra mental final 
   - (EVM context) Coisas que existem em todo contrato.
+      - Principais “variáveis globais” (as mais importantes)
+        - 🔹 `msg`
+        - 🔹 `address(this)`
+        - 🔹 `block`
+        - 🔹 `tx`
+    - Regras especiais sobre `address` e `.balance`
+        - Um contrato recebe ETH se
+        - Enviar ETH (atualmente se usa call)
+        - Como mudar o owner do contrato (padrão real)
+        - `public`, `external`, `internal`, `private` (sem confusão)
+        - 
+  - 🧠 Checkpoint geral 
   - Tópicos Práticos: `Indexed`.
+    - 🔹 Topics (índice)
+    - Data (payload)
+    - O que muda quando você marca algo como indexed
+    - Limites e regras importantes para indexadores
+        - ⚠️ Limite duro
+        - ⚠️ Tipos grandes
+    - Quando usar indexed
+    - Quando NÃO usar indexed
+    - Custo de gás de Indexed
+    - Regras práticas pra uso de Indexed
   - Tópicos Práticos: `modifier`.
+    - O que é um modifier (conceitualmente)
+    - Sintaxe básica (sem mágica)
+    - Usando o modifier na prática
+    - Aplicando em um contrato Counter
+    - Modifier pode receber parâmetros? ✅ Sim
+    - Modifier pode rodar código depois da função?
+    - Boas práticas reais (importante)
+    - ligando com o que você já sabe
+    - Modifiers, require e custom errors — desmistificando o uso correto
+        - Contexto da Dúvida (posso usar com require e custom errors?)
+        - Resposta curta (sim) 
   - ABI Encoding.
   - Tópicos Práticos: Custom errors
 ---
@@ -656,14 +710,13 @@ No nível do protocolo, JSON nunca é utilizado.
 ---
 ### 🎯 Contexto geral
 
-`require` é uma das construções mais importantes de Solidity.  
+- `require` é uma das construções mais importantes de Solidity.  
 Entender **bem** o que ele faz antes de sair alterando código evita bugs caros, estados inválidos e falhas de segurança.
 
-Ele não é um detalhe de sintaxe — é parte central do **modelo mental Web3**.
+- Ele não é um detalhe de sintaxe — é parte central do **modelo mental Web3**.
 
----
 
-## 1️⃣ O que é `require`, de verdade (nível EVM)
+### O que é `require`, de verdade (nível EVM)
 
 `require` **não é** um `if` especial.
 
@@ -692,9 +745,9 @@ Você está declarando:
 
 ---
 
-## 2️⃣ require vs revert vs assert
+### require vs revert vs assert
 
-### 🔹 require
+#### 🔹 require
 
 Use quando:
 
@@ -714,7 +767,7 @@ require(balance[msg.sender] >= amount);
 
 ---
 
-### 🔹 revert
+#### 🔹 revert
 
 É equivalente a `require(false, "...")`, mas usado de forma mais explícita.
 
@@ -734,7 +787,7 @@ Use quando:
 
 ---
 
-### 🔹 assert ⚠️
+#### 🔹 assert ⚠️
 
 ⚠️ **Não é para validação de input.**
 
@@ -756,13 +809,13 @@ assert(totalSupply >= balance[msg.sender]);
 
 ---
 
-## 3️⃣ Regras práticas de uso do require
+###  Regras práticas de uso do require
 
 Essas são as regras que realmente importam no dia a dia.
 
----
 
-### ✅ Regra 1 — Use require no início da função
+
+#### ✅ Regra 1 — Use require no início da função
 
 ```solidity
 function withdraw(uint amount) public {
@@ -784,7 +837,7 @@ require(balance[msg.sender] >= 0); // errado
 
 ---
 
-### ✅ Regra 2 — Não use require para fluxo normal
+#### ✅ Regra 2 — Não use require para fluxo normal
 
 ❌ Errado:
 
@@ -824,7 +877,7 @@ x += 1;
 
 ---
 
-## 4️⃣ Por que contratos seguros usam tanto require
+###  Por que contratos seguros usam tanto require
 
 Porque ele garante três propriedades críticas:
 
@@ -844,7 +897,7 @@ E essas condições estão claras no topo da função.
 
 ---
 
-## 5️⃣ Exemplos — bom vs ruim
+###  Exemplos — bom vs ruim
 
 ❌ **Ruim (mentalidade Web2)**
 
@@ -878,7 +931,7 @@ function withdraw(uint amount) public {
 
 ---
 
-## 6️⃣ Checklist mental simples
+###  Checklist mental simples antes de usar require
 
 Antes de escrever um `require`, pergunte:
 
@@ -902,10 +955,10 @@ Entender `require` bem cedo muda completamente:
 
 ---
 
-# Tópicos Práticos:  Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica
+## Tópicos Práticos:  Uso de `events` em Solidity — Observabilidade, Histórico e Semântica
 
 
-### 2️⃣ O que events são na prática (sem romantizar)
+###  O que events são na prática (sem romantizar)
 
 `events\` **NÃO** servem para lógica interna do contrato.
 
@@ -929,7 +982,7 @@ Eles:
 
 ---
 
-## 3️⃣ Quando usar events (regra simples)
+###  Quando usar events (regra simples)
 
 Use `events\` quando:
 
@@ -949,7 +1002,7 @@ Use `events\` quando:
 
 ---
 
-### 4️⃣ Aplicando events no Counter (mentalidade de engenheiro)
+###  Aplicando events em um Counter 
 
 Vamos pensar como engenheiros, não como “quem segue tutorial”.
 
@@ -1024,7 +1077,7 @@ function reset() public {
 
 ---
 
-### 5️⃣ Como isso é usado fora do contrato (visão prática)
+###  Como isso é usado fora do contrato (visão prática)
 
 Exemplo mental (frontend / script JS):
 
@@ -1053,7 +1106,7 @@ sabem o que aconteceu, **sem ficar lendo storage a cada bloco**.
 
 ---
 
-### 6️⃣ Checkpoint mental (guarde isso)
+###  Checkpoint mental - diferenças entre storage e events (guarde isso)
 
 **Storage** = estado atual  
 **Event** = histórico do que aconteceu  
@@ -1070,13 +1123,13 @@ Ou ainda:
 
 ---
 
-## 1️⃣ emit pode ser usado para outras coisas?
+### 1️⃣ emit pode ser usado para outras coisas?
 
 Resposta curta: **não — e isso é bom.**
 
 ---
 
-### O que `emit` faz exatamente
+#### O que `emit` faz exatamente
 
 `emit` **apenas dispara um event**.
 
@@ -1101,7 +1154,7 @@ Nada mais acontece além disso.
 
 ---
 
-### O que NÃO existe (e nunca existiu)
+#### O que NÃO existe (e nunca existiu)
 
 ❌ `emit` condicional  
 ❌ `emit` que influencia fluxo  
@@ -1112,7 +1165,7 @@ Nada mais acontece além disso.
 
 ---
 
-### 📌 Regra de ouro (memorize isso)
+#### 📌 recaptulação para "emit" (memorize isso)
 
 > **Se remover todos os `emit` de um contrato,  
 > o comportamento onchain dele não muda.**
@@ -1125,13 +1178,13 @@ Isso é **intencional**.
 Se essa separação estiver clara na sua cabeça,  
 você dificilmente vai cometer erros arquiteturais com events.
 
-## 1️⃣ Precisa declarar um event antes de usar `emit`?
+###  Precisa declarar um event antes de usar `emit`?
 
 ✅ **Sim. Sempre. Sem exceção.**
 
 ---
 
-### Como isso funciona em Solidity
+#### Como isso funciona em Solidity
 
 Em Solidity:
 
@@ -1154,7 +1207,7 @@ Não existe:
 
 ---
 
-### Por que isso é obrigatório?
+#### Por que isso é obrigatório?
 
 Porque:
 
@@ -1170,7 +1223,7 @@ Sem essa informação, o log não tem identidade nem possibilidade de indexaçã
 
 ---
 
-### Analogia rápida (e correta)
+#### Analogia rápida com funções comuns
 
 É como:
 
@@ -1186,7 +1239,7 @@ emit Increment(msg.sender, 3);
 
 ---
 
-### Regra mental final
+#### Regra mental final
 
 > `event` define  
 > `emit` executa  
@@ -1276,7 +1329,7 @@ Se você acha que precisa de `tx.origin`, provavelmente não precisa.
 
 ---
 
-## 3️⃣ Regras especiais sobre `address` e `.balance`
+###  Regras especiais sobre `address` e `.balance`
 
 Todo `address`:
 
@@ -1304,7 +1357,7 @@ Mesmo sem código explícito, ETH **pode chegar**.
 
 ---
 
-### Enviar ETH (resumo mental)
+### Enviar ETH (atualmente se usa call)
 
 Método | Recomendação
 --- | ---
@@ -1316,7 +1369,7 @@ Método | Recomendação
 
 ---
 
-## 4️⃣ `public`, `external`, `internal`, `private` (sem confusão)
+###  `public`, `external`, `internal`, `private` (sem confusão)
 
 Essa parte é **fundamental** para escrever contratos limpos.
 
@@ -1395,7 +1448,7 @@ private | só contrato
 
 ---
 
-## 5️⃣ Como mudar o owner do contrato (padrão real)
+## Como mudar o owner do contrato (padrão real)
 
 Esse é um **padrão real de mercado**.
 
@@ -1465,7 +1518,7 @@ Quando você emite um `event`, a EVM grava um **log**, e esse log é dividido em
 
 ---
 
-## 2️⃣ O que muda quando você marca algo como indexed
+### O que muda quando você marca algo como indexed
 
 ```solidity
 event Increment(address indexed by, uint256 amount);
@@ -1488,9 +1541,9 @@ counter.queryFilter(
 
 ---
 
-## 3️⃣ Limites e regras importantes
+### Limites e regras importantes para indexar
 
-### ⚠️ Limite duro
+#### ⚠️ Limite duro
 
 - Máximo de **3 parâmetros indexed**  
 - O **4º topic** é sempre o **hash do event**  
@@ -1499,7 +1552,7 @@ counter.queryFilter(
 
 ---
 
-### ⚠️ Tipos grandes
+#### ⚠️ Tipos grandes
 
 - Tipos simples (`address`, `uint256`) → armazenados diretamente  
 - Tipos complexos (`string`, `bytes`) → **hash** vai para o topic  
@@ -1511,7 +1564,7 @@ counter.queryFilter(
 
 ---
 
-## 4️⃣ Quando usar indexed
+### Quando usar indexed
 
 Use `indexed` quando você sabe que alguém vai querer perguntar:
 
@@ -1539,7 +1592,7 @@ event Transfer(
 
 ---
 
-## 5️⃣ Quando NÃO usar indexed
+### Quando NÃO usar indexed
 
 ❌ Não use para:
 
@@ -1561,7 +1614,7 @@ Porque:
 
 ---
 
-## 6️⃣ Custo de gás (sem exagero)
+###  Custo de gás de indexed
 
 - `indexed` **custa mais gás**  
 - mas **não é crítico** na maioria dos casos  
@@ -1572,7 +1625,7 @@ Porque:
 
 ---
 
-## 7️⃣ Regra prática (pra nunca errar)
+### Regras práticas pra uso de indexed 
 
 🔹 **Indexe quem**  
 🔹 **Não indexe quanto**  
@@ -1585,6 +1638,7 @@ Se você imaginar um backend ou UI:
 
 👉 `indexed` é uma decisão de **observabilidade**, não de lógica.
 
+---
 ## Tópicos Práticos: `modifier` 
 
 Olha para o seu contrato `Counter`.  
@@ -1604,7 +1658,7 @@ Isso gera três problemas práticos:
 
 ---
 
-## 2️⃣ O que é um modifier (conceitualmente)
+### O que é um modifier (conceitualmente)
 
 Um `modifier` é:
 
@@ -1622,7 +1676,7 @@ Nada de mágico. Só composição.
 
 ---
 
-## 3️⃣ Sintaxe básica (sem mágica)
+### Sintaxe básica (sem mágica)
 
 Exemplo mínimo:
 
@@ -1660,7 +1714,7 @@ Significa:
 
 ---
 
-## 4️⃣ Usando o modifier na prática
+### Usando o modifier na prática
 
 Antes (sem modifier):
 
@@ -1690,7 +1744,7 @@ function increment(uint256 amount) public onlyOwner {
 
 ---
 
-## 5️⃣ Aplicando ao contrato Counter (refatoração limpa)
+### Aplicando em um contrato Counter 
 
 ```solidity
 pragma solidity ^0.8.20;
@@ -1732,7 +1786,7 @@ contract Counter {
 
 ---
 
-## 6️⃣ Modifier pode receber parâmetros? ✅ Sim
+### Modifier pode receber parâmetros? ✅ Sim
 
 Exemplo:
 
@@ -1760,7 +1814,7 @@ Modifiers muito “inteligentes” prejudicam legibilidade.
 
 ---
 
-## 7️⃣ Modifier pode rodar código depois da função?
+### Modifier pode rodar código depois da função?
 
 ✅ Sim. Basta colocar lógica **após** o `_`.
 
@@ -1779,7 +1833,7 @@ Casos comuns:
 
 ---
 
-## 8️⃣ Boas práticas reais (importante)
+### Boas práticas reais (importante)
 
 ✅ Use modifiers para:
 
@@ -1799,7 +1853,7 @@ Casos comuns:
 
 ---
 
-## 9️⃣ Ligando com o que você já sabe
+### ligando com o que você já sabe
 
 Você já entendeu:
 
@@ -1814,9 +1868,9 @@ Você já entendeu:
 
 Nada de mágico aqui — só organização e segurança.
 
-## Modifiers, require e custom errors — desmistificando o uso correto
+### Modifiers, require e custom errors — desmistificando o uso correto
 
-## Contexto da dúvida
+#### Contexto da dúvida
 
 Dúvida comum ao evoluir o design de contratos:
 
@@ -1830,7 +1884,7 @@ Essa dúvida é excelente, porque **não é sobre sintaxe**,
 
 ---
 
-## Resposta curta (alinhamento rápido)
+#### Resposta curta (sim)
 
 👉 **Sim, você pode e deve usar modifier com custom errors.**  
 👉 **Modifier não é exclusivo de require.**  
