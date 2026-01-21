@@ -47,7 +47,6 @@
     - Por que contratos seguros usam tanto require
     - Exemplos — bom vs ruim
     - Checklist mental simples antes de usar require
-
   - Uso de \`events\` em Solidity — Observabilidade, Histórico e Semântica.
     - O que events são na prática (sem romantizar)
     - Quando usar events (regra simples)
@@ -99,7 +98,50 @@
     - Modifiers, require e custom errors — desmistificando o uso correto
         - Contexto da Dúvida (posso usar com require e custom errors?)
         - Resposta curta (sim) 
-  - ABI Encoding.
+    - ABI Encoding.
+        - O que é ABI encoding
+        - A EVM não entende “funções”, “strings” ou “eventos” (são apenas abstrações)
+        - ABI Encoding na ENTRADA do contrato (call data)
+        - ABI Encoding na SAÍDA do contrato (return data)
+        - ABI Encoding em ERROS (revert)
+        - Custom Errors
+        - ABI Encoding em Custom Errors
+        - ABI Encoding em `require("string")`
+        - ABI Encoding em EVENTS (logs)
+        - Um modelo mental unificado (direções, EVM só carrega bytes, ABI da semântica )
+        - Por que isso importa para escrever e auditar contratos (ABI é design de API)
+        - Uma provocação (Se você entendeu ABI, consegue contruir tudo apartir apenas dele)
+        - “Todos os encodings usam selector de 4 bytes e o resto 32? E tudo vem de hashes?”
+        - “Todos os encodings usam selector de 4 bytes e o resto 32? E tudo vem de hashes?”
+            - 🔹 1.1 O que é hash de verdade no ABI?
+            - 🔹 1.2 O que **NÃO** vem de hash
+            - 🔹 1.3 Por que tudo “parece hash”?
+            - Então por que 32 bytes?
+        - “O encoding é tipo uma tabela nome → valor?”
+        - Como pensar no ABI Encoding corretamente
+        - os tipos dinâmicos? (ABI vira layout de memória)
+        - Resumo técnico das regras fundamentais
+        - Resumo técnico das regras fundamentais
+            - 🔹 Identificação
+            - 🔹 Dados
+        - Um teste mental (bom sinal se você conseguir responder)
+        - A regra real do ABI (O ABI é definido por tipo + ordem)
+            - Onde isso aparece de forma concreta
+            - 🔹 1. Function selector
+            - 🔹 2. Decodificação off-chain
+            - Um exemplo mental forte
+            - Então o que exatamente muda no ABI?
+            - Onde isso aparece no Hardhat (concreto)
+            - Comparação real (mental)
+            - Onde isso é usado nos testes
+        - Importante: ABI ≠ Solidity
+        - Gerando call data com ethers (efeito antes da descrição)
+        - O ponto exato onde isso acontece
+        - Gerando call data manualmente
+        - O ponto CRÍTICO do modelo mental
+        - Observação importante
+        - E quando você usa counter.add(5)?
+        - 
   - Tópicos Práticos: Custom errors
 ---
 
@@ -2118,7 +2160,7 @@ Se isso já está no seu radar, você está no nível certo para avançar.
 
 ## Tópicos Práticos : ABI Encoding.
 
-### 1️⃣ O que é ABI Encoding (em uma frase honesta)
+###  O que é ABI Encoding 
 
 ABI Encoding é o **contrato de serialização** entre o mundo EVM e o mundo externo.
 
@@ -2135,7 +2177,7 @@ Nada mais. Nada menos.
 
 ---
 
-## 2️⃣ A EVM não entende “funções”, “strings” ou “eventos”
+##  A EVM não entende “funções”, “strings” ou “eventos” 
 
 Esse ponto é **crítico** para o modelo mental correto.
 
@@ -2160,7 +2202,7 @@ O ABI é a linguagem comum entre:
 
 ---
 
-## 3️⃣ ABI Encoding na ENTRADA do contrato (call data)
+### ABI Encoding na ENTRADA do contrato (call data)
 
 Esse é o caso mais conhecido — e você já entende bem — mas vale amarrar.
 
@@ -2186,7 +2228,7 @@ O ABI define:
 
 ---
 
-## 4️⃣ ABI Encoding na SAÍDA do contrato (return data)
+### ABI Encoding na SAÍDA do contrato (return data)
 
 Aqui entra uma parte que muita gente ignora no começo.
 
@@ -2228,13 +2270,13 @@ sabem exatamente como decodificar isso porque:
 
 ---
 
-## 5️⃣ ABI Encoding em ERROS (revert)
+### ABI Encoding em ERROS (revert)
 
 Aqui entra o ponto mais sofisticado do seu estudo atual 👌
 
 ---
 
-### 5.1 `require("string")`
+### ABI Encoding em `require("string")`
 
 ```solidity
 require(x > 0, "x must be positive");
@@ -2256,7 +2298,7 @@ Ele é um padrão **global** da linguagem.
 
 ---
 
-### 5.2 Custom Errors
+###  ABI Encoding em Custom Errors
 
 ```solidity
 error XMustBePositive(uint256 x);
@@ -2283,7 +2325,7 @@ Isso significa que:
 
 ---
 
-## 6️⃣ ABI Encoding em EVENTS (logs)
+### ABI Encoding em EVENTS (logs)
 
 Eventos não usam o campo `data` da transação,  
 mas usam ABI com **regras próprias**.
@@ -2321,7 +2363,7 @@ Eventos:
 
 ---
 
-## 7️⃣ Um modelo mental unificado (importante)
+### Um modelo mental unificado (direções, EVM só carrega bytes, ABI da semântica )
 
 Pense assim:
 
@@ -2341,7 +2383,7 @@ O ABI dá **semântica** a esses bytes.
 
 ---
 
-## 8️⃣ Por que isso importa para escrever e auditar contratos
+### Por que isso importa para escrever e auditar contratos (ABI é design de API)
 
 Você já está no ponto certo para essa pergunta, então vamos ser diretos:
 
@@ -2363,7 +2405,7 @@ Auditoria **não é só**:
 
 ---
 
-## 9️⃣ Uma provocação (cética, mas útil)
+### Uma provocação (Se você entendeu ABI, consegue contruir tudo apartir apenas dele)
 
 Para testar se o modelo mental fechou mesmo, pense:
 
@@ -2376,9 +2418,9 @@ Se a resposta for:
 
 👉 então você **realmente entendeu ABI Encoding**.
 
-## ABI Encoding — hashes, 32 bytes e modelo mental correto
+### ABI Encoding — hashes, 32 bytes e modelo mental correto
 
-## 1️⃣ “Todos os encodings usam selector de 4 bytes e o resto 32? E tudo vem de hashes?”
+#### “Todos os encodings usam selector de 4 bytes e o resto 32? E tudo vem de hashes?”
 
 **Resposta curta:**  
 👉 Não.  
@@ -2389,7 +2431,7 @@ Agora a resposta correta, com precisão.
 
 ---
 
-### 🔹 1.1 O que é hash de verdade no ABI?
+##### 🔹 1.1 O que é hash de verdade no ABI?
 
 Somente estas coisas vêm de `keccak256`:
 
@@ -2403,7 +2445,7 @@ Somente estas coisas vêm de `keccak256`:
 
 ---
 
-### 🔹 1.2 O que **NÃO** vem de hash
+##### 🔹 1.2 O que **NÃO** vem de hash
 
 Parâmetros como:
 
@@ -2426,7 +2468,7 @@ revert XMustBePositive(5);
 
 ---
 
-### 🔹 1.3 Por que tudo “parece hash”?
+#####🔹 1.3 Por que tudo “parece hash”?
 
 Porque:
 
@@ -2441,7 +2483,7 @@ Mas conceitualmente:
 
 ---
 
-## 2️⃣ Então por que 32 bytes?
+#### Então por que 32 bytes?
 
 Essa é uma **regra estrutural**, não criptográfica.
 
@@ -2460,7 +2502,7 @@ O ABI escolheu alinhar tudo nisso porque:
 
 ---
 
-## 3️⃣ “O encoding é tipo uma tabela nome → valor?”
+### “O encoding é tipo uma tabela nome → valor?”
 
 Excelente pergunta — e a resposta é sutil.
 
@@ -2483,7 +2525,7 @@ O significado vem de **ordem + tipo**, nunca de nomes.
 
 ---
 
-## 4️⃣ Como pensar no ABI Encoding corretamente
+### Como pensar no ABI Encoding corretamente
 
 Use este modelo mental:
 
@@ -2505,7 +2547,7 @@ Resultado:
 
 ---
 
-## 5️⃣ E os tipos dinâmicos? (importante)
+### E os tipos dinâmicos? (ABI vira layout de memória)
 
 Aqui o ABI deixa de parecer “tabela” e vira **layout de memória**.
 
@@ -2529,14 +2571,14 @@ Ou seja:
 
 ---
 
-## 6️⃣ Resumo técnico das regras fundamentais
+### Resumo técnico das regras fundamentais
 
-### 🔹 Identificação
+#### 🔹 Identificação
 - Funções → 4 bytes de hash  
 - Erros → 4 bytes de hash  
 - Eventos → 32 bytes de hash  
 
-### 🔹 Dados
+#### 🔹 Dados
 - Tudo é alinhado em 32 bytes  
 - Valores **não são hasheados**  
 - Tipos dinâmicos usam **offsets**  
@@ -2544,7 +2586,7 @@ Ou seja:
 
 ---
 
-## 7️⃣ Um teste mental (bom sinal se você conseguir responder)
+### Um teste mental (bom sinal se você conseguir responder)
 
 - Se eu trocar o nome de um parâmetro, o encoding muda?  
   👉 **Não**
@@ -2557,9 +2599,9 @@ Ou seja:
 
 Se essas respostas fazem sentido para você, **seu modelo mental está correto**.
 
-## Por que uint256 → uint128 muda o ABI?
+### Por que uint256 → uint128 muda o ABI?
 
-## 1️⃣ A confusão central (normal)
+#### 1️⃣ A confusão central (normal)
 
 Você pode estar pensando:
 
@@ -2569,7 +2611,7 @@ Essa intuição é **boa**, mas **incompleta**.
 
 ---
 
-## A regra real do ABI (a chave)
+### A regra real do ABI (O ABI é definido por tipo + ordem)
 
 👉 **O ABI é definido por tipo + ordem, não por tamanho físico em memória.**
 
@@ -2582,9 +2624,9 @@ ambos sejam serializados em **32 bytes**, eles são **tipos distintos no ABI**.
 
 ---
 
-## Onde isso aparece de forma concreta
+#### Onde isso aparece de forma concreta
 
-### 🔹 1. Function selector
+##### 🔹 1. Function selector
 
 O selector é gerado a partir da **assinatura textual**:
 
@@ -2599,7 +2641,7 @@ keccak256(...) diferente →
 
 ---
 
-### 🔹 2. Decodificação off-chain
+##### 🔹 2. Decodificação off-chain
 
 Imagine uma ferramenta externa lendo *return data* ou *revert data*.
 
@@ -2615,7 +2657,7 @@ Mesmo que o padding seja o mesmo, o **tipo semântico muda**.
 
 ---
 
-## Um exemplo mental forte
+##### Um exemplo mental forte
 
 Pergunta provocativa:
 
@@ -2635,7 +2677,7 @@ não otimização de bytes.
 
 ---
 
-## 2️⃣ Então o que exatamente muda no ABI?
+###### Então o que exatamente muda no ABI?
 
 Vamos ser cirúrgicos.
 
@@ -2659,13 +2701,13 @@ Um contrato que espera add(uint256) **não reconhece** add(uint128),
 
    ---
 
-## 3️⃣ Onde isso aparece no Hardhat (concreto)
+#####  Onde isso aparece no Hardhat (concreto)
 
    Isso aparece principalmente nos **artifacts** e nos **testes**.
 
    ---
 
-### 3.1 Arquivo de artifact
+#####  Arquivo de artifact
 
    Após compilar:
    ``` json 
@@ -2682,7 +2724,7 @@ Um contrato que espera add(uint256) **não reconhece** add(uint128),
 
 ---
 
-### 3.2 Comparação real (mental)
+##### Comparação real (mental)
 
 Se você trocar:
 
@@ -2717,7 +2759,7 @@ Mesmo sem mudar o bytecode de storage.
 
 ---
 
-### 3.3 Onde isso é usado nos testes
+##### Onde isso é usado nos testes
 
 Quando você faz:
 
@@ -2741,7 +2783,7 @@ Se o ABI estiver errado:
 
 ---
 
-## 4️⃣ Importante: ABI ≠ Solidity
+### Importante: ABI ≠ Solidity
 
 Você está fazendo algo **muito saudável** ao separar:
 
@@ -2754,9 +2796,9 @@ Muita gente nunca faz isso.
 
 ---
 
-## 5️⃣ Gerando call data com ethers (efeito antes da descrição)
+### Gerando call data com ethers (efeito antes da descrição)
 
-### Visão geral do fluxo
+#### Visão geral do fluxo
 
 ABI JSON
 ↓
@@ -2776,7 +2818,7 @@ transação / eth_call
 
 ---
 
-### O ponto exato onde isso acontece
+#### O ponto exato onde isso acontece
 
 No ethers:
 ``` js
@@ -2812,7 +2854,7 @@ O ethers faz:
 
 ---
 
-### Gerando call data manualmente
+#### Gerando call data manualmente
 
 ``` js
 const abi = [
@@ -2838,7 +2880,7 @@ a9059cbb ← selector (4 bytes)
 
 ---
 
-## 6️⃣ O ponto CRÍTICO do modelo mental
+#### O ponto CRÍTICO do modelo mental
 
 Pergunta direta:
 
@@ -2862,7 +2904,7 @@ O padding não muda.
 
 ---
 
-## 7️⃣ Observação importante
+#### Observação importante
 
 O ethers **não sabe nada** sobre:
 
@@ -2885,7 +2927,7 @@ Mesmo que o contrato exista e esteja correto.
 
 ---
 
-## 8️⃣ E quando você usa counter.add(5)?
+#### E quando você usa counter.add(5)?
 
 Quando você faz:
 ``` js
@@ -2904,7 +2946,7 @@ A única diferença:
 
 ---
 
-## 9️⃣ Teste mental final
+### Teste mental final (gerar calldata sem ABI e sem ABI?)
 
 - Se eu tiver só o ABI e nenhum contrato, consigo gerar call data?  
   👉 Sim
