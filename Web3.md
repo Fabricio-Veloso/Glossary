@@ -73,7 +73,6 @@
         - Enviar ETH (atualmente se usa call)
         - Como mudar o owner do contrato (padrão real)
         - `public`, `external`, `internal`, `private` (sem confusão)
-        - 
   - 🧠 Checkpoint geral 
   - Tópicos Práticos: `Indexed`.
     - 🔹 Topics (índice)
@@ -104,14 +103,12 @@
         - ABI Encoding na ENTRADA do contrato (call data)
         - ABI Encoding na SAÍDA do contrato (return data)
         - ABI Encoding em ERROS (revert)
-        - Custom Errors
         - ABI Encoding em Custom Errors
         - ABI Encoding em `require("string")`
         - ABI Encoding em EVENTS (logs)
         - Um modelo mental unificado (direções, EVM só carrega bytes, ABI da semântica )
         - Por que isso importa para escrever e auditar contratos (ABI é design de API)
         - Uma provocação (Se você entendeu ABI, consegue contruir tudo apartir apenas dele)
-        - “Todos os encodings usam selector de 4 bytes e o resto 32? E tudo vem de hashes?”
         - “Todos os encodings usam selector de 4 bytes e o resto 32? E tudo vem de hashes?”
             - 🔹 1.1 O que é hash de verdade no ABI?
             - 🔹 1.2 O que **NÃO** vem de hash
@@ -141,8 +138,63 @@
         - O ponto CRÍTICO do modelo mental
         - Observação importante
         - E quando você usa counter.add(5)?
-        - 
   - Tópicos Práticos: Custom errors
+    - Contexto da dúvida (custom errors é "apenas declarar `error Nome();` e depois dar `revert Nome();`?")
+    - A sintaxe básica (sem truque escondido)
+        - Então por que custom errors existem? (o problema real)
+            - 🔴Gas e bytecode
+            - 🔴Semântica fraca com string
+        - Custom errors podem (e devem) ter parâmetros
+        - Onde declarar custom errors (escopo importa)
+        - Require vs revert + custom error
+        - Pegadinhas importantes (herança e nomes)
+        - ⚠️ 1. Errors não são herdados magicamente
+        - ⚠️ 2. O nome do erro importa MUITO
+        - ⚠️ 3. Custom error não é exceção “high-level”
+        - Quando NÃO usar custom errors
+        - Gas e bytecode — impacto real (Hardhat comparando uso de gás de dois contratos equivalentes)
+        - Custom errors fazem parte da ABI pública
+        - Error como API (analogia útil)
+        - Checklist mental rápido (perguntas para se fazer antes de escrever um error)
+        - Custom errors Conclusão prática
+        - “Projetar todos os erros antes” — o que isso realmente significa
+            - 🔹 O que faz muito sentido projetar antes
+            - 🔹 O que NÃO faz sentido congelar cedo demais
+        - “Evitar `require` então é sempre melhor?”
+        - O ganho real de se usar custom errors 
+            - Aplicando em um Counter mínimo 
+            - 📌 Requisitos do sistema (antes do código)
+            - 🧱 Projeção de erros (primeiro!)
+            - 🧩 Implementação do contrato
+            - O que esse exemplo prova
+            - Insight mais valioso (guarda esse)
+        - Versionamento e breaking changes (entrada)
+        - O que é breaking change em contratos 
+        - Por que errors quebram compatibilidade
+        - 🔴 Mudanças que quebram ABI
+        - Exemplo concreto: Counter v1 → v2 (quebrando tudo)
+            - Versão “profissional” de v2 (compatível)
+            - 🟢 Estratégia A — Manter o erro antigo
+            - 🟡 Estratégia B — Introduzir novo erro sem remover o antigo
+            - 🔴 Estratégia C — Quebrar explicitamente (major version)
+        - Regras práticas para versionar errors (guarda isso)
+            - ✔️ 1. Erros públicos são quase imutáveis
+            - ✔️ 2. Nome importa mais que mensagem
+            - ✔️ 3. Parâmetros também fazem parte do contrato
+            - ✔️ 4. Agrupe errors como API
+            - Como um auditor enxerga isso
+        - O insight final (muito importante)
+        - Próximo passo natural 
+        - Testando, protegendo e versionando custom errors no hardhat (nível metal)
+        - Exemplo com o counter
+            - Testando parâmetros do error
+            - Validando selectors explicitamente (nível auditor)
+            - Detectando breaking change automaticamente
+            - Micro-workflow técnico saudável (curto e prático)
+            - O que muda na sua cabeça depois disso
+            - Um detalhe que pouca gente usa (você pode criar um teste **só para abi**)
+        - Próximo passo (quais erros são públicos e quais são internos, como evoluir o protocolo)
+        - 
 ---
 
 
@@ -2961,7 +3013,7 @@ A única diferença:
 
 ## Tópicos Práticos: Custom errors
 
-## Contexto da dúvida
+### Contexto da dúvida
 
 Pergunta central:
 
@@ -2974,7 +3026,7 @@ E isso costuma acender exatamente a desconfiança certa.
 
 ---
 
-## 1️⃣ A sintaxe básica (sem truque escondido)
+#### A sintaxe básica (sem truque escondido)
 
 Sim. No nível mais simples, é exatamente isso:
 
@@ -3004,13 +3056,13 @@ Mas isso é apenas o **caso mínimo**.
 
 ---
 
-## 2️⃣ Então por que custom errors existem? (o problema real)
+#### Então por que custom errors existem? (o problema real)
 
 O `require(..., "string")` tem **dois problemas sérios** em contratos reais.
 
 ---
 
-### 🔴 1. Gas e bytecode
+##### 🔴Gas e bytecode
 
 Quando você escreve:
 
@@ -3052,7 +3104,7 @@ No bytecode existe apenas:
 
 ---
 
-### 🔴 2. Semântica fraca com string
+##### 🔴Semântica fraca com string
 
 Isso aqui:
 
@@ -3083,7 +3135,7 @@ Carrega semântica estrutural:
 
 ---
 
-## 3️⃣ Custom errors podem (e devem) ter parâmetros
+### Custom errors podem (e devem) ter parâmetros
 
 Eles não são só nomes.
 
@@ -3104,7 +3156,7 @@ Isso permite:
 
 ---
 
-## 4️⃣ Onde declarar custom errors (escopo importa)
+### Onde declarar custom errors (escopo importa)
 
 Você pode declarar errors:
 
@@ -3129,7 +3181,7 @@ revert Errors.NotOwner();
 
 ---
 
-## 5️⃣ require vs revert + custom error
+### Require vs revert + custom error
 
 Essas duas formas são equivalentes no controle de fluxo:
 
@@ -3153,9 +3205,9 @@ Isso é intencional no design da linguagem.
 
 ---
 
-## 6️⃣ Pegadinhas importantes (vale saber cedo)
+### Pegadinhas importantes (herança e nomes)
 
-### ⚠️ 1. Errors não são herdados magicamente
+#### ⚠️ 1. Errors não são herdados magicamente
 
 Declarar um error em um contrato base não o torna automaticamente visível em outros arquivos.
 
@@ -3163,7 +3215,7 @@ Declarar um error em um contrato base não o torna automaticamente visível em o
 
 ---
 
-### ⚠️ 2. O nome do erro importa MUITO
+#### ⚠️ 2. O nome do erro importa MUITO
 
 Isso é ruim:
 
@@ -3195,7 +3247,7 @@ Eles:
 
 ---
 
-## 7️⃣ Quando NÃO usar custom errors
+### Quando NÃO usar custom errors
 
 Casos aceitáveis para `require(string)`:
 
@@ -3210,11 +3262,11 @@ Em produção, bibliotecas e contratos reutilizáveis:
 
 ---
 
-## 8️⃣ Gas e bytecode — impacto real (Hardhat)
+### Gas e bytecode — impacto real (Hardhat comparando uso de gás de dois contratos equivalentes)
 
 Comparando dois contratos equivalentes:
 
-### Com string
+#### Com string
 
 require(x > 0, "x must be positive");
 
@@ -3223,7 +3275,7 @@ require(x > 0, "x must be positive");
 - bytecode maior
 - deploy mais caro
 
-### Com custom error
+#### Com custom error
 
 error XMustBePositive();
 if (x == 0) revert XMustBePositive();
@@ -3237,7 +3289,7 @@ if (x == 0) revert XMustBePositive();
 
 ---
 
-## 9️⃣ Custom errors fazem parte da ABI pública
+### Custom errors fazem parte da ABI pública
 
 Isso é o salto conceitual importante.
 
@@ -3260,7 +3312,7 @@ Isso permite:
 
 ---
 
-## 🔟 Error como API (analogia útil)
+### Error como API (analogia útil)
 
 Pense assim:
 
@@ -3282,7 +3334,7 @@ Não como:
 
 ---
 
-## 1️⃣1️⃣ Checklist mental rápido
+## Checklist mental rápido 
 
 Sempre que escrever um error, pergunte:
 
@@ -3296,7 +3348,7 @@ Se “sim” para 2 ou mais:
 
 ---
 
-## 1️⃣2️⃣ Conclusão prática
+## Custom errors Conclusão prática
 
 Custom errors:
 
@@ -3310,9 +3362,7 @@ Você está **definindo os limites formais do sistema**.
 
 ---
 
-## 1️⃣ “Projetar todos os erros antes” — o que isso realmente significa
-
-### Dúvida central
+### “Projetar todos os erros antes” — o que isso realmente significa
 
 > Então, na prática, é melhor fazer **toda a projeção de erros** e criar todos os erros **antes** de escrever o código (o que for possível) e só depois escrever o contrato, correto?  
 > Evitando o uso de \`require\`, já que são mais caros, além de deixar o contrato mais barato, mais documentado e capaz de alimentar melhor estruturas off-chain?
@@ -3330,7 +3380,7 @@ Erros são a **materialização desses limites**.
 
 ---
 
-### 🔹 O que faz muito sentido projetar antes
+#### 🔹 O que faz muito sentido projetar antes
 
 Principalmente:
 
@@ -3356,7 +3406,7 @@ Esses erros:
 
 ---
 
-### 🔹 O que NÃO faz sentido congelar cedo demais
+#### 🔹 O que NÃO faz sentido congelar cedo demais
 
 - regras de negócio ainda instáveis
 - protótipos
@@ -3372,7 +3422,7 @@ Forçar *error-driven design* quando o domínio ainda é nebuloso:
 
 ---
 
-## 2️⃣ “Evitar \`require\` então é sempre melhor?”
+### “Evitar \`require\` então é sempre melhor?”
 
 Não de forma dogmática.
 
@@ -3391,7 +3441,7 @@ Não de forma dogmática.
 
 ---
 
-## 3️⃣ O ganho real (sem hype)
+###  O ganho real de se usar custom errors 
 
 Você entendeu corretamente os ganhos:
 
@@ -3408,9 +3458,9 @@ Isso é muito mais forte.
 
 ---
 
-## 4️⃣ Aplicando em um Counter mínimo (ancorando o modelo)
+### Aplicando em um Counter mínimo 
 
-### 📌 Requisitos do sistema (antes do código)
+#### 📌 Requisitos do sistema (antes do código)
 
 - contador começa em 0
 - só o owner pode alterar
@@ -3421,7 +3471,7 @@ Isso é muito mais forte.
 
 ---
 
-### 🧱 Projeção de erros (primeiro!)
+#### 🧱 Projeção de erros (primeiro!)
 
 \`error Unauthorized(address caller);\`  
 \`error CounterOverflow(uint256 value, uint256 max);\`  
@@ -3432,7 +3482,7 @@ o sistema **já está definido**.
 
 ---
 
-### 🧩 Implementação do contrato
+#### 🧩 Implementação do contrato
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -3477,7 +3527,7 @@ contract Counter {
 }
 ```
 
-## 5️⃣ O que esse exemplo prova
+#### O que esse exemplo prova
 
 Esse contrato:
 
@@ -3496,7 +3546,7 @@ Quem consome:
 
 ---
 
-## 6️⃣ Insight mais valioso (guarda esse)
+#### Insight mais valioso (guarda esse)
 
 Quando você projeta erros **antes** do código:
 
@@ -3511,7 +3561,7 @@ Isso é um padrão mental poderoso para:
 
 ---
 
-## 7️⃣ Ordem dos próximos passos (faz sentido)
+#### Ordem dos próximos passos (faz sentido)
 
 A ordem que você sugeriu é excelente:
 
@@ -3528,7 +3578,7 @@ Porque:
 
 ---
 
-## 8️⃣ Agora: versionamento e breaking changes (entrada)
+### Versionamento e breaking changes (entrada)
 
 Erros **quebram compatibilidade**.
 
@@ -3551,7 +3601,7 @@ Quebrar error = quebrar promessa.
 
 ---
 
-## 9️⃣ Caminho que vamos seguir a partir daqui
+#### Caminho que vamos seguir a partir daqui
 
 Entramos agora em:
 
@@ -3566,7 +3616,7 @@ Seguimos pelo caminho técnico primeiro —
 e depois subimos para design com muito mais clareza.
 
 
-## Versionamento de Errors e Breaking Changes em Solidity
+### Versionamento de Errors e Breaking Changes em Solidity
 
 Perfeito. Então agora a gente entra na parte que quase ninguém trata com seriedade —  
 e que, para quem escreve contratos do zero ou audita, é uma das mais importantes.
@@ -3581,7 +3631,7 @@ Vou estruturar assim (bem direto e progressivo):
 
 ---
 
-## 1️⃣ O que é breaking change em contratos (sem ilusão)
+### O que é breaking change em contratos 
 
 Em web tradicional, você “deploya de novo”.  
 Em contratos:
@@ -3607,7 +3657,7 @@ E isso inclui:
 
 ---
 
-## 2️⃣ Por que errors quebram compatibilidade
+### Por que errors quebram compatibilidade
 
 Lembra disso?
 
@@ -3624,13 +3674,13 @@ Qualquer mudança aqui **muda o selector**.
 
 ### 🔴 Mudanças que quebram ABI
 
-\`error Unauthorized();\`  
+`error Unauthorized();`  
 → **QUEBRA** (assinatura mudou)
 
-\`error NotAuthorized(address caller);\`  
+`error NotAuthorized(address caller);`  
 → **QUEBRA** (nome mudou)
 
-\`error Unauthorized(address caller, uint256 time);\`  
+`error Unauthorized(address caller, uint256 time);`  
 → **QUEBRA** (parâmetros mudaram)
 
 Mesmo que:
@@ -3643,19 +3693,19 @@ Para quem integra:
 
 ---
 
-## 3️⃣ Exemplo concreto: Counter v1 → v2 (quebrando tudo)
+#### Exemplo concreto: Counter v1 → v2 (quebrando tudo)
 
-### ✅ v1 (bom)
+##### ✅ v1 (bom)
 
-\`error CounterOverflow(uint256 value, uint256 max);\`
+`error CounterOverflow(uint256 value, uint256 max);`
 
 Frontend / bot:
 
-\`if (e.errorName === "CounterOverflow") { disableButton(); }\`
+`if (e.errorName === "CounterOverflow") { disableButton(); }`
 
-### ❌ v2 (ingênuo)
+##### ❌ v2 (ingênuo)
 
-\`error MaxValueReached(uint256 current);\`
+`error MaxValueReached(uint256 current);`
 
 Mesmo significado semântico.  
 Mesmo comportamento.  
@@ -3672,11 +3722,11 @@ Tudo que dependia do erro:
 
 ---
 
-## 4️⃣ Versão “profissional” de v2 (compatível)
+#### Versão “profissional” de v2 (compatível)
 
 Você tem três estratégias legítimas.
 
-### 🟢 Estratégia A — Manter o erro antigo
+##### 🟢 Estratégia A — Manter o erro antigo
 
 \`error CounterOverflow(uint256 value, uint256 max);\`
 
@@ -3687,12 +3737,12 @@ Mesmo se internamente você mudou a lógica.
 
 ---
 
-### 🟡 Estratégia B — Introduzir novo erro sem remover o antigo
+##### 🟡 Estratégia B — Introduzir novo erro sem remover o antigo
 
-\`error CounterOverflow(uint256 value, uint256 max);\`  
-\`error MaxValueReached(uint256 current);\`
+`error counteroverflow(uint256 value, uint256 max);\`  
+`error maxvaluereached(uint256 current);\`
 
-E decidir em código qual usar.
+e decidir em código qual usar.
 
 ➡️ backward-compatible  
 ➡️ mais complexo  
@@ -3700,11 +3750,11 @@ E decidir em código qual usar.
 
 ---
 
-### 🔴 Estratégia C — Quebrar explicitamente (major version)
+##### 🔴 estratégia c — quebrar explicitamente (major version)
 
 - novo contrato  
 - novo endereço  
-- ABI nova  
+- abi nova  
 - users migram conscientemente  
 
 ➡️ isso é honesto  
@@ -3713,152 +3763,149 @@ E decidir em código qual usar.
 
 ---
 
-## 5️⃣ Regras práticas para versionar errors (guarda isso)
+### regras práticas para versionar errors (guarda isso)
 
-### ✔️ 1. Erros públicos são quase imutáveis
+#### ✔️ 1. erros públicos são quase imutáveis
 
-Se você publicou:
+se você publicou:
 
-\`error Unauthorized(address);\`
+`error unauthorized(address);`
 
-Considere isso **congelado**.
-
----
-
-### ✔️ 2. Nome importa mais que mensagem
-
-Evite:
-
-\`error Invalid();\`
-
-Prefira:
-
-\`error Unauthorized();\`  
-\`error InvalidState();\`  
-\`error ZeroAddress();\`
-
-Eles sobrevivem melhor ao tempo.
+considere isso **congelado**.
 
 ---
 
-### ✔️ 3. Parâmetros também fazem parte do contrato
+#### ✔️ 2. nome importa mais que mensagem
 
-Não adicione parâmetros “porque agora parece útil”.
+evite:
 
-Isso:
+`error invalid();`
 
-\`error Unauthorized(address caller);\`
+prefira:
 
-Não pode virar:
+`error unauthorized();`  
+`error invalidstate();`  
+`error zeroaddress();`
 
-\`error Unauthorized(address caller, uint256 time);\`
-
-Sem quebrar.
+eles sobrevivem melhor ao tempo.
 
 ---
 
-### ✔️ 4. Agrupe errors como API
+#### ✔️ 3. parâmetros também fazem parte do contrato
 
-Boa prática:
+não adicione parâmetros “porque agora parece útil”.
 
-\`library Errors {  
-    error Unauthorized(address caller);  
-    error InvalidState();  
-}\`
+isso:
+
+`error unauthorized(address caller);`
+
+não pode virar:
+
+`error unauthorized(address caller, uint256 time);`
+
+sem quebrar.
+
+---
+
+#### ✔️ 4. agrupe errors como api
+
+boa prática:
+
+`library errors {  
+    error unauthorized(address caller);  
+    error invalidstate();  
+}`
 
 ➡️ deixa explícito que aquilo é “interface”
 
 ---
 
-## 6️⃣ Como um auditor enxerga isso
+#### como um auditor enxerga isso
 
-Quando um auditor vê:
+quando um auditor vê:
 
 - errors bem nomeados  
 - poucos  
 - estáveis  
 - coerentes  
 
-Ele pensa:
+ele pensa:
 
 > “esse contrato foi projetado, não improvisado”
 
-Quando vê:
+quando vê:
 
 - strings soltas  
 - errors mudando sem razão  
 - erros genéricos  
 
-Ele pensa:
+ele pensa:
 
 > “isso vai quebrar integração”
 
-Isso **pesa em relatório**.
+isso **pesa em relatório**.
 
 ---
 
-## 7️⃣ O insight final (muito importante)
+#### o insight final (muito importante)
 
-Erros são promessas.
+erros são promessas.
 
-Quando você expõe um error:
+quando você expõe um error:
 
 - você promete que aquela condição existirá  
 - você promete que integradores podem confiar nisso  
 
-Quebrar error ≈ **quebrar promessa**.
+quebrar error ≈ **quebrar promessa**.
 
 ---
 
-## 8️⃣ Próximo passo natural (bem alinhado)
+### Próximo passo natural 
 
-Agora faz muito sentido avançar para:
+agora faz muito sentido avançar para:
 
-- como testar compatibilidade de errors no Hardhat  
+- como testar compatibilidade de errors no hardhat  
 - ou como planejar v2 sem quebrar v1  
 - ou como documentar errors como parte do protocolo  
 
-👉 Próxima decisão técnica:
+👉 próxima decisão técnica:
 
-seguir em **Hardhat + testes + selectors**  
+seguir em **hardhat + testes + selectors**  
 ou subir um nível e discutir **design e versionamento de protocolos**.
 
-Ambos fazem sentido — a escolha define onde você quer investir energia agora.
+ambos fazem sentido — a escolha define onde você quer investir energia agora.
 
 
-## Testando, protegendo e versionando custom errors no Hardhat (nível metal)
+### Testando, protegendo e versionando custom errors no hardhat (nível metal)
 
-Perfeito. Então vamos descer até o metal, mas sempre com o radar ligado para **por que isso importa** — não só como fazer.
+perfeito. então vamos descer até o metal, mas sempre com o radar ligado para **por que isso importa** — não só como fazer.
 
-Vou organizar em blocos curtos e objetivos:
+vou organizar em blocos curtos e objetivos:
 
-- Como testar custom errors no Hardhat  
-- Como garantir que selectors não mudaram  
-- Como detectar breaking change automaticamente  
-- Um micro-workflow técnico saudável  
-- O que você passa a “ver” depois disso  
+- como testar custom errors no hardhat  
+- como garantir que selectors não mudaram  
+- como detectar breaking change automaticamente  
+- um micro-workflow técnico saudável  
+- o que você passa a “ver” depois disso  
 
----
 
-## 1️⃣ Testando custom errors no Hardhat (forma correta)
+assumindo:
 
-Assumindo:
-
-- Hardhat  
+- hardhat  
 - ethers  
 - mocha / chai  
 
-### Exemplo com o Counter
+#### Exemplo com o counter
 
 ```ts
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-describe("Counter", () => {
-  it("reverts with CounterOverflow", async () => {
-    const [owner] = await ethers.getSigners();
-    const Counter = await ethers.getContractFactory("Counter");
-    const counter = await Counter.deploy();
+describe("counter", () => {
+  it("reverts with counteroverflow", async () => {
+    const [owner] = await ethers.getsigners();
+    const counter = await ethers.getcontractfactory("counter");
+    const counter = await counter.deploy();
 
     // chega no limite
     for (let i = 0; i < 10; i++) {
@@ -3866,72 +3913,72 @@ describe("Counter", () => {
     }
 
     await expect(counter.increment())
-      .to.be.revertedWithCustomError(counter, "CounterOverflow");
+      .to.be.revertedwithcustomerror(counter, "counteroverflow");
   });
 });
 ```
 
-🔎 Isso testa:
+🔎 isso testa:
 
 - nome do error  
-- ABI  
+- abi  
 - selector  
 
-Sem string. Sem heurística.
+sem string. sem heurística.
 
 ---
 
-### Testando parâmetros do error
+#### Testando parâmetros do error
 
 ```ts
 await expect(counter.increment())
-  .to.be.revertedWithCustomError(counter, "CounterOverflow")
-  .withArgs(10, 10);
+  .to.be.revertedwithcustomerror(counter, "counteroverflow")
+  .withargs(10, 10);
 ```
 
-➡️ Se mudar a **ordem**, **tipo** ou **quantidade** de parâmetros:  
+➡️ se mudar a **ordem**, **tipo** ou **quantidade** de parâmetros:  
 o teste quebra imediatamente.
 
-Isso é **ouro para versionamento**.
+isso é **ouro para versionamento**.
 
 ---
 
-## 2️⃣ Validando selectors explicitamente (nível auditor)
+#### Validando selectors explicitamente (nível auditor)
 
-Todo error tem um selector:
+todo error tem um selector:
 
-`bytes4(keccak256("CounterOverflow(uint256,uint256)"))`
+`bytes4(keccak256("counteroverflow(uint256,uint256)"))`
 
-No Hardhat:
+no hardhat:
 
 ```ts
 const iface = counter.interface;
 
-const selector = iface.getError("CounterOverflow").selector;
+const selector = iface.geterror("counteroverflow").selector;
 
 expect(selector).to.equal("0x...");
 ```
 
-Você pode:
+você pode:
 
 - salvar selectors esperados  
 - detectar mudanças silenciosas  
 
 ---
 
-## 3️⃣ Detectando breaking change automaticamente
+#### Detectando breaking change automaticamente
 
-Aqui está um padrão **muito poderoso**.
+aqui está um padrão **muito poderoso**.
 
-### 📌 Snapshot de ABI
+### 📌 snapshot de abi
 
-No CI:
+no ci:
 
 - compile  
-- salve ABI antiga  
-- compare com ABI nova  
+- salve abi antiga  
+- compare com abi nova  
 
-Se:
+se:
 
 - error sumiu  
 - error mudou assinatura  
@@ -3939,32 +3986,32 @@ Se:
 
 ➡️ **falha o pipeline**
 
-Mesmo sem olhar código.
+mesmo sem olhar código.
 
-### Exemplo simples de comparação (conceitual)
+### exemplo simples de comparação (conceitual)
 
 ```ts
-const oldErrors = extractErrors(oldAbi);
-const newErrors = extractErrors(newAbi);
+const olderrors = extracterrors(oldabi);
+const newerrors = extracterrors(newabi);
 
-expect(newErrors).to.deep.equal(oldErrors);
+expect(newerrors).to.deep.equal(olderrors);
 ```
 
-Isso trata error como **contrato público**, não detalhe interno.
+isso trata error como **contrato público**, não detalhe interno.
 
 ---
 
-## 4️⃣ Micro-workflow técnico saudável (curto e prático)
+#### Micro-workflow técnico saudável (curto e prático)
 
-Quando você cria um contrato novo:
+quando você cria um contrato novo:
 
 1️⃣ liste os errors  
 2️⃣ escreva testes **só de revert**  
 3️⃣ implemente a lógica  
 4️⃣ rode gas reporter  
-5️⃣ congele a ABI pública  
+5️⃣ congele a abi pública  
 
-Quando você muda algo:
+quando você muda algo:
 
 - error mudou?  
   → **versiona**  
@@ -3974,45 +4021,43 @@ Quando você muda algo:
 
 ---
 
-## 5️⃣ O que muda na sua cabeça depois disso
+#### O que muda na sua cabeça depois disso
 
-Depois que você começa a:
+depois que você começa a:
 
 - testar errors  
 - comparar selectors  
-- versionar ABI  
+- versionar abi  
 
-Você para de pensar:
+você para de pensar:
 
 > “o contrato funciona?”
 
-E passa a pensar:
+e passa a pensar:
 
 > “o contrato é estável?”
 
-Isso é **mentalidade de protocolo**.
+isso é **mentalidade de protocolo**.
 
 ---
 
-## 6️⃣ Um detalhe que pouca gente usa (mas vale muito)
-
-Você pode criar um teste **só para ABI**:
+####  Um detalhe que pouca gente usa (você pode criar um teste **só para abi**)
 
 ```ts
-it("ABI compatibility", async () => {
-  const abi = require("../artifacts/contracts/Counter.sol/Counter.json").abi;
+it("abi compatibility", async () => {
+  const abi = require("../artifacts/contracts/counter.sol/counter.json").abi;
 
   const errors = abi.filter((x: any) => x.type === "error");
 
   expect(errors).to.deep.equal([
     {
       type: "error",
-      name: "Unauthorized",
+      name: "unauthorized",
       inputs: [{ type: "address", name: "caller" }]
     },
     {
       type: "error",
-      name: "CounterOverflow",
+      name: "counteroverflow",
       inputs: [
         { type: "uint256", name: "value" },
         { type: "uint256", name: "max" }
@@ -4020,77 +4065,77 @@ it("ABI compatibility", async () => {
     },
     {
       type: "error",
-      name: "CounterUnderflow",
+      name: "counterunderflow",
       inputs: [{ type: "uint256", name: "value" }]
     }
   ]);
 });
 ```
 
-➡️ Isso é **contrato congelado em teste**.
+➡️ isso é **contrato congelado em teste**.
 
 ---
 
-## 7️⃣ Próximo passo (agora sim design faz sentido)
+### Próximo passo (quais erros são públicos e quais são internos, como evoluir o protocolo)
 
-Agora que:
+agora que:
 
 - você sabe testar  
 - sabe detectar breaking change  
-- sabe proteger a ABI  
+- sabe proteger a abi  
 
-O próximo passo natural é:
+o próximo passo natural é:
 
 ➡️ como decidir quais errors são **públicos** e quais são **internos**  
 ➡️ como evoluir o protocolo **sem quebrar consumidores**  
 ➡️ quando **quebrar é aceitável**  
 
-A partir daqui, design deixa de ser abstrato —  
+a partir daqui, design deixa de ser abstrato —  
 ele passa a ser **ancorado em garantias técnicas reais**.
 
 
 
 
 ---
-# Transição Web2 → Web3 — Fundamentos e Arquitetura Mental
+# transição web2 → web3 — fundamentos e arquitetura mental
 
-## 🧠 CAMADA 1 — Mudar o modelo mental (fundamental)
+## 🧠 camada 1 — mudar o modelo mental (fundamental)
 
-### Transição Web2 → Web3: 📦 O que realmente é um smart contract
+### transição web2 → web3: 📦 o que realmente é um smart contract
 
-- Um smart contract **não é um backend**
-- Ele é:
+- um smart contract **não é um backend**
+- ele é:
   - um programa determinístico
   - rodando em milhares de máquinas
   - com custo por instrução (gas)
   - sem acesso externo
-  - sem IO
+  - sem io
   - sem relógio confiável
   - sem threads
   - sem exceptions no sentido tradicional
 
-**Analogia correta:**
-- Uma *stored procedure*:
+**analogia correta:**
+- uma *stored procedure*:
   - distribuída
   - imutável
   - pública
   - paga por uso
   - irreversível
-### Transição Web2 → Web3: 🔴 Diferença central entre Web2 e Web3
+### transição web2 → web3: 🔴 diferença central entre web2 e web3
 
-**Web2**
+**web2**
 - código pode mudar
 - bugs são corrigíveis
 - banco de dados é mutável
 - acesso é controlado por uma entidade
 
-**Web3**
+**web3**
 - contratos não podem mudar (na prática)
 - bugs custam dinheiro real
 - estado é público e imutável
 - depois do deploy, ninguém “manda”
 
-👉 Isso muda completamente:
+👉 isso muda completamente:
 - arquitetura
 - estratégia de testes
 - responsabilidade
@@ -4099,19 +4144,19 @@ ele passa a ser **ancorado em garantias técnicas reais**.
 ---
 
 
-## Testes, selectors e proteção de ABI com custom errors (Hardhat)
+## testes, selectors e proteção de abi com custom errors (hardhat)
 
-### Exemplo de teste com custom error
+### exemplo de teste com custom error
 
 \```ts
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-describe("Counter", () => {
-  it("reverts with CounterOverflow", async () => {
-    const [owner] = await ethers.getSigners();
-    const Counter = await ethers.getContractFactory("Counter");
-    const counter = await Counter.deploy();
+describe("counter", () => {
+  it("reverts with counteroverflow", async () => {
+    const [owner] = await ethers.getsigners();
+    const counter = await ethers.getcontractfactory("counter");
+    const counter = await counter.deploy();
 
     // chega no limite
     for (let i = 0; i < 10; i++) {
@@ -4119,72 +4164,72 @@ describe("Counter", () => {
     }
 
     await expect(counter.increment())
-      .to.be.revertedWithCustomError(counter, "CounterOverflow");
+      .to.be.revertedwithcustomerror(counter, "counteroverflow");
   });
 });
 \```
 
-🔎 Isso testa:
+🔎 isso testa:
 
 - nome do error  
-- ABI  
+- abi  
 - selector  
 
-Sem string. Sem heurística.
+sem string. sem heurística.
 
 ---
 
-### Testando parâmetros do error
+### testando parâmetros do error
 
 \```ts
 await expect(counter.increment())
-  .to.be.revertedWithCustomError(counter, "CounterOverflow")
-  .withArgs(10, 10);
+  .to.be.revertedwithcustomerror(counter, "counteroverflow")
+  .withargs(10, 10);
 \```
 
-➡️ Se mudar a **ordem**, **tipo** ou **quantidade** de parâmetros:  
+➡️ se mudar a **ordem**, **tipo** ou **quantidade** de parâmetros:  
 o teste quebra imediatamente.
 
-Isso é **ouro para versionamento**.
+isso é **ouro para versionamento**.
 
 ---
 
-## 2️⃣ Validando selectors explicitamente (nível auditor)
+## 2️⃣ validando selectors explicitamente (nível auditor)
 
-Todo error tem um selector:
+todo error tem um selector:
 
-\`bytes4(keccak256("CounterOverflow(uint256,uint256)"))\`
+\`bytes4(keccak256("counteroverflow(uint256,uint256)"))\`
 
-No Hardhat:
+no hardhat:
 
 \```ts
 const iface = counter.interface;
 
-const selector = iface.getError("CounterOverflow").selector;
+const selector = iface.geterror("counteroverflow").selector;
 
 expect(selector).to.equal("0x...");
 \```
 
-Você pode:
+você pode:
 
 - salvar selectors esperados  
 - detectar mudanças silenciosas  
 
 ---
 
-## 3️⃣ Detectando breaking change automaticamente
+## 3️⃣ detectando breaking change automaticamente
 
-Aqui está um padrão muito poderoso.
+aqui está um padrão muito poderoso.
 
-### 📌 Snapshot de ABI
+### 📌 snapshot de abi
 
-No CI:
+no ci:
 
 - compile  
-- salve a ABI antiga  
-- compare com a ABI nova  
+- salve a abi antiga  
+- compare com a abi nova  
 
-Se:
+se:
 
 - error sumiu  
 - error mudou assinatura  
@@ -4192,30 +4237,30 @@ Se:
 
 ➡️ **falha o pipeline**, mesmo sem olhar código.
 
-### Exemplo simples de comparação (conceitual)
+### exemplo simples de comparação (conceitual)
 
 \```ts
-const oldErrors = extractErrors(oldAbi);
-const newErrors = extractErrors(newAbi);
+const olderrors = extracterrors(oldabi);
+const newerrors = extracterrors(newabi);
 
-expect(newErrors).to.deep.equal(oldErrors);
+expect(newerrors).to.deep.equal(olderrors);
 \```
 
-Isso trata error como **contrato público**, não como detalhe interno.
+isso trata error como **contrato público**, não como detalhe interno.
 
 ---
 
-## 4️⃣ Workflow técnico saudável (curto e prático)
+## 4️⃣ workflow técnico saudável (curto e prático)
 
-Quando você cria um contrato novo:
+quando você cria um contrato novo:
 
 1️⃣ liste os errors  
 2️⃣ escreva testes **só de revert**  
 3️⃣ implemente a lógica  
 4️⃣ rode o gas reporter  
-5️⃣ congele a ABI pública  
+5️⃣ congele a abi pública  
 
-Quando você muda algo:
+quando você muda algo:
 
 - error mudou?  
   → **versiona**  
@@ -4225,45 +4270,45 @@ Quando você muda algo:
 
 ---
 
-## 5️⃣ O que muda na sua cabeça depois disso
+## 5️⃣ o que muda na sua cabeça depois disso
 
-Depois que você começa a:
+depois que você começa a:
 
 - testar errors  
 - comparar selectors  
-- versionar ABI  
+- versionar abi  
 
-Você para de pensar:
+você para de pensar:
 
 > “o contrato funciona?”
 
-E passa a pensar:
+e passa a pensar:
 
 > “o contrato é estável?”
 
-Isso é **mentalidade de protocolo**.
+isso é **mentalidade de protocolo**.
 
 ---
 
-## 6️⃣ Um detalhe que pouca gente usa (mas vale muito)
+## 6️⃣ um detalhe que pouca gente usa (mas vale muito)
 
-Você pode criar um teste **exclusivo para ABI**:
+você pode criar um teste **exclusivo para abi**:
 
 \```ts
-it("ABI compatibility", async () => {
-  const abi = require("../artifacts/contracts/Counter.sol/Counter.json").abi;
+it("abi compatibility", async () => {
+  const abi = require("../artifacts/contracts/counter.sol/counter.json").abi;
 
   const errors = abi.filter((x: any) => x.type === "error");
 
   expect(errors).to.deep.equal([
     {
       type: "error",
-      name: "Unauthorized",
+      name: "unauthorized",
       inputs: [{ type: "address", name: "caller" }]
     },
     {
       type: "error",
-      name: "CounterOverflow",
+      name: "counteroverflow",
       inputs: [
         { type: "uint256", name: "value" },
         { type: "uint256", name: "max" }
@@ -4271,32 +4316,32 @@ it("ABI compatibility", async () => {
     },
     {
       type: "error",
-      name: "CounterUnderflow",
+      name: "counterunderflow",
       inputs: [{ type: "uint256", name: "value" }]
     }
   ]);
 });
 \```
 
-➡️ Isso é **contrato congelado em teste**.
+➡️ isso é **contrato congelado em teste**.
 
 ---
 
-## 7️⃣ Próximo passo (agora sim design faz sentido)
+## 7️⃣ próximo passo (agora sim design faz sentido)
 
-Agora que:
+agora que:
 
 - você sabe testar  
 - sabe detectar breaking change  
-- sabe proteger a ABI  
+- sabe proteger a abi  
 
-O próximo passo natural é:
+o próximo passo natural é:
 
 ➡️ decidir quais errors são **públicos** e quais são **internos**  
 ➡️ aprender a evoluir o protocolo **sem quebrar consumidores**  
 ➡️ entender **quando quebrar é aceitável**
 
-A partir daqui, design deixa de ser abstrato  
+a partir daqui, design deixa de ser abstrato  
 e passa a ser **ancorado em garantias técnicas reais**.
 ````
 
@@ -4313,41 +4358,41 @@ e passa a ser **ancorado em garantias técnicas reais**.
 
 
 
-## Transição Web2 → Web3: 🧩 CAMADA 2 — Base técnica mínima (para não ficar boiando)
+## transição web2 → web3: 🧩 camada 2 — base técnica mínima (para não ficar boiando)
 
-Aqui o objetivo não é virar especialista, mas ganhar **vocabulário operacional**.
+aqui o objetivo não é virar especialista, mas ganhar **vocabulário operacional**.
 
 ---
 
-### Transição Web2 → Web3: ⚙️ 1️⃣ EVM de verdade
+### transição web2 → web3: ⚙️ 1️⃣ evm de verdade
 
-Estudar:
-- o que é a EVM
+estudar:
+- o que é a evm
 - stack machine
 - gas
 - storage vs memory vs calldata
 - opcodes (conceito, não decorar)
 
-Você precisa entender por que:
+você precisa entender por que:
 - loops são perigosos
 - arrays grandes são caros
 - leitura e escrita têm custos diferentes
 
-👉 Isso evita escrever contratos ruins sem perceber.
+👉 isso evita escrever contratos ruins sem perceber.
 
 ---
 
-### Transição Web2 → Web3: 🧑‍💻 2️⃣ Solidity como linguagem restrita
+### transição web2 → web3: 🧑‍💻 2️⃣ solidity como linguagem restrita
 
-Solidity **não é JavaScript**.
+solidity **não é javascript**.
 
-É uma linguagem:
+é uma linguagem:
 - com tipagem forte
 - focada em estado persistente
 - com semântica própria de memória
 - cheia de riscos específicos
 
-Conceitos essenciais:
+conceitos essenciais:
 - `msg.sender`, `msg.value`
 - `call`, `delegatecall`
 - modifiers
@@ -4362,489 +4407,489 @@ Conceitos essenciais:
 
 ---
 
-### Transição Web2 → Web3: 📜 3️⃣ ERCs como protocolos sociais
+### transição web2 → web3: 📜 3️⃣ ercs como protocolos sociais
 
-ERCs **não são bibliotecas**.
-São acordos sociais codificados.
+ercs **não são bibliotecas**.
+são acordos sociais codificados.
 
-Estudar:
-- ERC-20
-- ERC-721
+estudar:
+- erc-20
+- erc-721
 - allowance model
 - snapshots
 
-Entender:
+entender:
 - por que eles existem
 - quais ataques exploraram implementações ruins
 - como pequenos desvios do padrão causam perdas reais
 
 ---
 
-## Transição Web2 → Web3: 🛠️ CAMADA 3 — Toolchain (onde tudo começa a fazer sentido)
+## transição web2 → web3: 🛠️ camada 3 — toolchain (onde tudo começa a fazer sentido)
 
-Aqui a maioria se perde — organização é crucial.
+aqui a maioria se perde — organização é crucial.
 
 ---
 
-### Transição Web2 → Web3: 🧪 Hardhat (ou Foundry)
+### transição web2 → web3: 🧪 hardhat (ou foundry)
 
-É o seu:
+é o seu:
 - ambiente local
 - test runner
 - deployer
 - debugger
 
-Você vai:
+você vai:
 - rodar blockchain local
 - simular ataques
 - fazer fork da mainnet
 - escrever testes antes do deploy
 
-👉 Em Web3, quem não testa, **perde dinheiro**.
+👉 em web3, quem não testa, **perde dinheiro**.
 
 ---
 
-### Transição Web2 → Web3: 🔌 ethers.js
+### transição web2 → web3: 🔌 ethers.js
 
-É:
+é:
 - a ponte entre frontend e contratos
 - base de scripts de deploy
 - usada em automações off-chain
 
-Você precisa entender:
+você precisa entender:
 - como instanciar contratos
 - como chamar funções
 - diferença entre:
   - `call`
-  - `sendTransaction`
+  - `sendtransaction`
 
 ---
 
-### Transição Web2 → Web3: 🌐 RPC + Nodes (na prática)
+### transição web2 → web3: 🌐 rpc + nodes (na prática)
 
-Você **não fala com a blockchain**.
-Você fala com um **node via RPC**.
+você **não fala com a blockchain**.
+você fala com um **node via rpc**.
 
-Infura / Alchemy:
+infura / alchemy:
 - abstraem infraestrutura pesada
 - são pontos de confiança
 
-Você precisa saber:
+você precisa saber:
 - quando confiar
 - quando rodar node próprio
 - quando usar múltiplos providers
 
 ---
 
-## Transição Web2 → Web3: 🏗️ CAMADA 4 — Arquitetura de projetos reais
+## transição web2 → web3: 🏗️ camada 4 — arquitetura de projetos reais
 
-Aqui está o objetivo final.
+aqui está o objetivo final.
 
 ---
 
-### Transição Web2 → Web3: 🧱 Padrões de arquitetura on-chain
+### transição web2 → web3: 🧱 padrões de arquitetura on-chain
 
-- Factory contracts
-- Escrow por projeto
-- Governor + Timelock
-- Multisig admin
-- Upgradeability vs Imutabilidade
+- factory contracts
+- escrow por projeto
+- governor + timelock
+- multisig admin
+- upgradeability vs imutabilidade
 
-Aqui entram decisões:
+aqui entram decisões:
 - técnicas
 - sociais
 - éticas
 
-**Exemplo:**
+**exemplo:**
 - permitir upgrade → menos risco técnico
 - não permitir upgrade → mais confiança social
 
 ---
 
-### Transição Web2 → Web3: 🧠 Governança ≠ CRUD
+### transição web2 → web3: 🧠 governança ≠ crud
 
-Governança envolve:
+governança envolve:
 - poder
 - incentivos
 - ataques econômicos
 
-Você precisa entender:
+você precisa entender:
 - quorum
 - snapshot
 - time delay
 - stake vs vote
 
-E principalmente:
+e principalmente:
 - como pessoas abusam do sistema
 - mesmo quando o código está “correto”
 
 ---
 
-### Transição Web2 → Web3: 🔍 Off-chain sem trair o on-chain
+### transição web2 → web3: 🔍 off-chain sem trair o on-chain
 
-Serviços off-chain:
+serviços off-chain:
 - leem
 - indexam
 - exibem
 - notificam
 
-Eles **não decidem nada crítico**.
+eles **não decidem nada crítico**.
 
-👉 Decisão financeira **sempre on-chain**.
+👉 decisão financeira **sempre on-chain**.
 
 ---
-# 📚 Como estudar isso de forma eficaz (método, não links):
-## Fase 1 — Fundamentos práticos
+# 📚 como estudar isso de forma eficaz (método, não links):
+## fase 1 — fundamentos práticos
 
-### Ler docs Ethereum + Polygon
+### ler docs ethereum + polygon
 
-## 🧭 Guia de Estudos — Base Técnica Web3 (Ethereum + Polygon)
+## 🧭 guia de estudos — base técnica web3 (ethereum + polygon)
 
-> Objetivo:
-> Construir base técnica sólida para compreender e desenvolver projetos Web3
+> objetivo:
+> construir base técnica sólida para compreender e desenvolver projetos web3
 > (smart contracts, arquitetura on-chain/off-chain, governança e segurança),
 > partindo do zero prático até um mini-projeto com padrões da indústria.
 
 ---
-# CONCEITUAL
+# conceitual
 
-## 🔴 BLOCO 1 — Fundamentos de Blockchain & Ethereum (Obrigatório)
+## 🔴 bloco 1 — fundamentos de blockchain & ethereum (obrigatório)
 
-### Conceitos gerais
-- [x] O que é uma blockchain (revisão técnica)
-- [x] Diferença entre Web2 e Web3 (modelo mental)
-- [x] Imutabilidade e consenso
-- [x] Estado global da blockchain
+### conceitos gerais
+- [x] o que é uma blockchain (revisão técnica)
+- [x] diferença entre web2 e web3 (modelo mental)
+- [x] imutabilidade e consenso
+- [x] estado global da blockchain
 
-### Contas e transações
-- [x] EOA (Externally Owned Accounts)
-- [x] Contract Accounts
-- [x] Transações:
+### contas e transações
+- [x] eoa (externally owned accounts)
+- [x] contract accounts
+- [x] transações:
   - [x] nonce
   - [x] gas
   - [x] gas limit
   - [x] gas price / base fee
-- [x] O que acontece quando uma transação é enviada
+- [x] o que acontece quando uma transação é enviada
 
-🎯 Objetivo do bloco:
-> Conseguir explicar, passo a passo, o que acontece quando alguém chama uma função
+🎯 objetivo do bloco:
+> conseguir explicar, passo a passo, o que acontece quando alguém chama uma função
 > de um contrato na blockchain.
 
-## Chamada de funções em smart contracts (fluxo completo)
+## chamada de funções em smart contracts (fluxo completo)
 
-### Visão geral
-Quando alguém “chama uma função” de um smart contract no Ethereum, na prática essa pessoa está **enviando uma transação para o endereço do contrato**, contendo no campo `data` a chamada codificada da função.  
-O contrato **não reage automaticamente** a essa chamada; seu código só é executado quando a transação é incluída e executada dentro de um bloco.
+### visão geral
+quando alguém “chama uma função” de um smart contract no ethereum, na prática essa pessoa está **enviando uma transação para o endereço do contrato**, contendo no campo `data` a chamada codificada da função.  
+o contrato **não reage automaticamente** a essa chamada; seu código só é executado quando a transação é incluída e executada dentro de um bloco.
 
 ---
 
-### Passo a passo detalhado (fluxo técnico)
+### passo a passo detalhado (fluxo técnico)
 
-1. **Preparação off-chain**
-   O usuário interage com uma interface off-chain (wallet, dApp, script, etc.).  
-   A função do contrato e seus parâmetros são codificados usando **ABI encoding** e colocados no campo `data` da transação.
+1. **preparação off-chain**
+   o usuário interage com uma interface off-chain (wallet, dapp, script, etc.).  
+   a função do contrato e seus parâmetros são codificados usando **abi encoding** e colocados no campo `data` da transação.
 
-2. **Criação da transação**
-   A transação contém, entre outros campos:
-   - `from`: endereço EOA do usuário
+2. **criação da transação**
+   a transação contém, entre outros campos:
+   - `from`: endereço eoa do usuário
    - `to`: endereço do smart contract
-   - `value`: ETH enviado (opcional)
+   - `value`: eth enviado (opcional)
    - `data`: chamada da função codificada
-   - `nonce`, `gasLimit`, `maxFeePerGas`, etc.
+   - `nonce`, `gaslimit`, `maxfeepergas`, etc.
 
-3. **Assinatura**
-   A transação é:
-   - codificada (RLP)
+3. **assinatura**
+   a transação é:
+   - codificada (rlp)
    - hashada
    - assinada com a chave privada do emissor  
-   O resultado é a **raw transaction** (bytes representados em hexadecimal).
+   o resultado é a **raw transaction** (bytes representados em hexadecimal).
 
-4. **Envio ao nó RPC**
-   A raw transaction é enviada via JSON-RPC (`eth_sendRawTransaction`) a um nó Ethereum.  
-   O nó verifica:
+4. **envio ao nó rpc**
+   a raw transaction é enviada via json-rpc (`eth_sendrawtransaction`) a um nó ethereum.  
+   o nó verifica:
    - assinatura
    - nonce
    - saldo suficiente para gas e value  
-   Nenhum código de contrato é executado aqui.
+   nenhum código de contrato é executado aqui.
 
-5. **Mempool**
-   A transação válida entra no mempool.  
-   Neste estágio:
+5. **mempool**
+   a transação válida entra no mempool.  
+   neste estágio:
    - o estado da blockchain não muda
    - o contrato não é executado
    - a transação está apenas aguardando inclusão em um bloco
 
-6. **Seleção pelo validador**
-   Um validador escolhe transações do mempool (geralmente priorizando taxas mais altas) para montar um novo bloco.
+6. **seleção pelo validador**
+   um validador escolhe transações do mempool (geralmente priorizando taxas mais altas) para montar um novo bloco.
 
-7. **Execução da transação**
-   Durante a proposição do bloco, o validador:
-   - executa a transação na EVM
+7. **execução da transação**
+   durante a proposição do bloco, o validador:
+   - executa a transação na evm
    - chama o código do contrato indicado em `to`
    - executa a função especificada em `data`
    - consome gas
    - lê e escreve no storage do contrato
    - gera logs e eventos  
-   Aqui o contrato “existe” e seu código é efetivamente executado.
+   aqui o contrato “existe” e seu código é efetivamente executado.
 
-8. **Resultado da execução**
-   - Se a execução termina com sucesso: o estado global é atualizado.
-   - Se ocorre `revert` ou falta de gas: o estado é revertido, mas o gas é consumido.
+8. **resultado da execução**
+   - se a execução termina com sucesso: o estado global é atualizado.
+   - se ocorre `revert` ou falta de gas: o estado é revertido, mas o gas é consumido.
 
-9. **Propagação e verificação**
-   O bloco é propagado para a rede.  
-   Todos os outros nós:
+9. **propagação e verificação**
+   o bloco é propagado para a rede.  
+   todos os outros nós:
    - reexecutam as transações
    - verificam se o estado final e o consumo de gas são válidos  
-   Se tudo bater, o bloco é aceito.
+   se tudo bater, o bloco é aceito.
 
 ---
 
-### Resposta curta (modelo mental)
+### resposta curta (modelo mental)
 
-Quando alguém chama uma função de um smart contract, na verdade está enviando uma transação para o endereço do contrato, contendo a chamada da função no campo `data`.  
-Essa transação é assinada off-chain, enviada a um nó RPC e colocada no mempool.  
-O código do contrato **só é executado quando um validador inclui essa transação em um bloco e a executa na EVM**.  
-Depois disso, todos os nós reexecutam a transação para verificar que o novo estado da blockchain é válido.
+quando alguém chama uma função de um smart contract, na verdade está enviando uma transação para o endereço do contrato, contendo a chamada da função no campo `data`.  
+essa transação é assinada off-chain, enviada a um nó rpc e colocada no mempool.  
+o código do contrato **só é executado quando um validador inclui essa transação em um bloco e a executa na evm**.  
+depois disso, todos os nós reexecutam a transação para verificar que o novo estado da blockchain é válido.
 ---
 
-## 🔴 BLOCO 2 — Smart Contracts (Modelo Mental Correto)
+## 🔴 bloco 2 — smart contracts (modelo mental correto)
 
-- [x] O que é um smart contract (tecnicamente)
-- [x] Diferença entre:
+- [x] o que é um smart contract (tecnicamente)
+- [x] diferença entre:
   - [x] call (leitura)
   - [x] transaction (escrita)
-- [x] Determinismo
-- [x] Por que contratos não:
+- [x] determinismo
+- [x] por que contratos não:
   - [x] acessam internet
   - [x] acessam arquivos
   - [x] acessam tempo real confiável
-- [x] Como contratos chamam outros contratos
-- [x] Eventos (logs) e seu papel
+- [x] como contratos chamam outros contratos
+- [x] eventos (logs) e seu papel
 
-🎯 Objetivo do bloco:
-> Entender **limitações e garantias**, não apenas possibilidades.
+🎯 objetivo do bloco:
+> entender **limitações e garantias**, não apenas possibilidades.
 
 ---
 
-## 🔴 BLOCO 3 — EVM (Ethereum Virtual Machine)
+## 🔴 bloco 3 — evm (ethereum virtual machine)
 
-### Funcionamento interno (nível correto)
-- [x] O que é a EVM
-- [x] Máquina baseada em stack (conceito)
-- [x] Execução determinística
-- [x] Gas como custo computacional
+### funcionamento interno (nível correto)
+- [x] o que é a evm
+- [x] máquina baseada em stack (conceito)
+- [x] execução determinística
+- [x] gas como custo computacional
 
-### Memória e armazenamento
+### memória e armazenamento
 - [x] `storage` (persistente)
 - [x] `memory` (temporário)
 - [x] `calldata` (somente leitura)
-- [x] Diferença de custo entre leitura e escrita
+- [x] diferença de custo entre leitura e escrita
 
-### Armadilhas comuns
-- [x] Por que loops são perigosos
-- [x] Por que arrays grandes custam caro
-- [x] O que significa “bricking” um contrato
+### armadilhas comuns
+- [x] por que loops são perigosos
+- [x] por que arrays grandes custam caro
+- [x] o que significa “bricking” um contrato
 
-🎯 Objetivo do bloco:
-> Não escrever código ineficiente ou perigoso sem perceber.
+🎯 objetivo do bloco:
+> não escrever código ineficiente ou perigoso sem perceber.
 
 ---
-# CONCEITUAL/>
+# conceitual/>
 
-# PRATICO>
-## 🔴 BLOCO 4 — Solidity (Essencial antes de codar)
+# pratico>
+## 🔴 bloco 4 — solidity (essencial antes de codar)
 
-### Base da linguagem
-- [ ] Tipos básicos
-- [x] Funções
-- [x] Construtor
-- [x] Visibilidade:
+### base da linguagem
+- [ ] tipos básicos
+- [x] funções
+- [x] construtor
+- [x] visibilidade:
   - [x] public
   - [x] external
   - [x] internal
   - [x] private
 
-### Contexto de execução
+### contexto de execução
 - [x] `msg.sender`
 - [ ] `msg.value`
 - [ ] `address(this)`
 - [ ] `block.number` (conceito, cuidado)
 
-### Controle e segurança básica
+### controle e segurança básica
 - [x] `require`
 - [ ] `revert`
 - [ ] `error`
-- [ ] Modifiers
-- [x] Events
+- [ ] modifiers
+- [x] events
 
-🚫 Fora de escopo por enquanto:
-- Inline assembly
-- Yul
-- ABI encoding profundo
-- Otimizações avançadas
+🚫 fora de escopo por enquanto:
+- inline assembly
+- yul
+- abi encoding profundo
+- otimizações avançadas
 
-🎯 Objetivo do bloco:
-> Ser capaz de ler e escrever contratos simples com clareza.
+🎯 objetivo do bloco:
+> ser capaz de ler e escrever contratos simples com clareza.
 
 ---
 
-## 🔴 BLOCO 5 — Tokens & Padrões (ERCs)
+## 🔴 bloco 5 — tokens & padrões (ercs)
 
-### Conceitos
-- [ ] O que é um token fungível
-- [ ] Por que tokens são contratos
-- [ ] Diferença entre token e moeda nativa
+### conceitos
+- [ ] o que é um token fungível
+- [ ] por que tokens são contratos
+- [ ] diferença entre token e moeda nativa
 
-### ERC-20
-- [ ] O que é o padrão ERC-20
-- [ ] Funções principais:
-  - [ ] balanceOf
+### erc-20
+- [ ] o que é o padrão erc-20
+- [ ] funções principais:
+  - [ ] balanceof
   - [ ] transfer
   - [ ] approve
-  - [ ] transferFrom
-- [ ] Allowance model
-- [ ] Riscos e armadilhas comuns
+  - [ ] transferfrom
+- [ ] allowance model
+- [ ] riscos e armadilhas comuns
 
-🎯 Objetivo do bloco:
-> Entender tokens como **infraestrutura padrão**, não como “moedas”.
-
----
-
-## 🔴 BLOCO 6 — Polygon (Visão Geral, sem aprofundar)
-
-- [ ] O que é a Polygon
-- [ ] Polygon PoS (sidechain)
-- [ ] Diferença entre Polygon e Ethereum
-- [ ] Taxas (gas)
-- [ ] MATIC / POL
-- [ ] Bridge (conceito geral)
-
-🚫 Ignorar por enquanto:
-- zkEVM
-- CDK
-- Appchains
-- Soluções enterprise
-
-🎯 Objetivo do bloco:
-> Saber **onde** você está deployando e **por que** usar Polygon.
+🎯 objetivo do bloco:
+> entender tokens como **infraestrutura padrão**, não como “moedas”.
 
 ---
 
-## 🔴 BLOCO 7 — Infraestrutura Básica (Conceitual)
+## 🔴 bloco 6 — polygon (visão geral, sem aprofundar)
 
-- [ ] O que é um node
-- [ ] O que é RPC
-- [ ] O papel de Infura / Alchemy / QuickNode
-- [ ] Diferença entre rodar node próprio e usar provider
-- [ ] O que são serviços off-chain
-- [ ] O que eles **podem** e **não podem** fazer
+- [ ] o que é a polygon
+- [ ] polygon pos (sidechain)
+- [ ] diferença entre polygon e ethereum
+- [ ] taxas (gas)
+- [ ] matic / pol
+- [ ] bridge (conceito geral)
 
-🎯 Objetivo do bloco:
-> Entender a fronteira entre on-chain e off-chain.
+🚫 ignorar por enquanto:
+- zkevm
+- cdk
+- appchains
+- soluções enterprise
+
+🎯 objetivo do bloco:
+> saber **onde** você está deployando e **por que** usar polygon.
 
 ---
 
-⚠️ Só avançar depois de completar os blocos anteriores.
-- Escrever contratos simples
-- [ ] Hardhat / Foundry
-- [ ] Testes de smart contracts
-- [ ] Primeiro contrato simples
-- [ ] Deploy em testnet
-- [ ] Frontend mínimo
-- [ ] Escrow básico
-- [ ] Factory contracts
-- [ ] Governança
-- Quebrar eles de propósito
+## 🔴 bloco 7 — infraestrutura básica (conceitual)
 
-- Entender erros comuns
+- [ ] o que é um node
+- [ ] o que é rpc
+- [ ] o papel de infura / alchemy / quicknode
+- [ ] diferença entre rodar node próprio e usar provider
+- [ ] o que são serviços off-chain
+- [ ] o que eles **podem** e **não podem** fazer
 
-### Fase 2 — Segurança
-- [ ] Segurança avançada
+🎯 objetivo do bloco:
+> entender a fronteira entre on-chain e off-chain.
 
-- Estudar hacks reais
-
-- Entender por que aconteceram
-
-- Simular ataques em testes
-
-### Fase 3 — Mini-projeto
-
-- Escrow simples
-
-- Token ERC-20
-
-- Factory
-
-- Frontend mínimo
-
-- Deploy em testnet
-
-### Fase 4 — Refinamento
-
-- Melhorar arquitetura
-
-- Adicionar governança
-
-- Escrever README técnico
-
-- Pensar como auditor
 ---
-# 📚 Documentação essencial — Como usar sem se perder
 
-## 🔹 1) Polygon Docs  
+⚠️ só avançar depois de completar os blocos anteriores.
+- escrever contratos simples
+- [ ] hardhat / foundry
+- [ ] testes de smart contracts
+- [ ] primeiro contrato simples
+- [ ] deploy em testnet
+- [ ] frontend mínimo
+- [ ] escrow básico
+- [ ] factory contracts
+- [ ] governança
+- quebrar eles de propósito
+
+- entender erros comuns
+
+### fase 2 — segurança
+- [ ] segurança avançada
+
+- estudar hacks reais
+
+- entender por que aconteceram
+
+- simular ataques em testes
+
+### fase 3 — mini-projeto
+
+- escrow simples
+
+- token erc-20
+
+- factory
+
+- frontend mínimo
+
+- deploy em testnet
+
+### fase 4 — refinamento
+
+- melhorar arquitetura
+
+- adicionar governança
+
+- escrever readme técnico
+
+- pensar como auditor
+---
+# 📚 documentação essencial — como usar sem se perder
+
+## 🔹 1) polygon docs  
 https://docs.polygon.technology/
 
-👉 **Bom, mas perigoso para iniciantes técnicos**
+👉 **bom, mas perigoso para iniciantes técnicos**
 
-Esse conjunto de docs é:
+esse conjunto de docs é:
 - extremamente completo
 - muito amplo
 - escrito para vários perfis:
   - infraestrutura
   - zk
-  - DeFi
+  - defi
   - enterprise
 
-📌 Use para:
-- entender o ecossistema Polygon
+📌 use para:
+- entender o ecossistema polygon
 - saber o que existe
 - diferenciar:
-  - Polygon PoS
-  - zkEVM
-  - CDK
+  - polygon pos
+  - zkevm
+  - cdk
   - bridges
 
-🚫 Não use como sequência de aprendizado linear  
-Esses docs **não foram feitos para isso**.
+🚫 não use como sequência de aprendizado linear  
+esses docs **não foram feitos para isso**.
 
 ---
 
-## 🔹 2) Ethereum Developers Docs  
+## 🔹 2) ethereum developers docs  
 https://ethereum.org/developers/docs/
 
-👉 **Esse é o seu “docs raiz”**
+👉 **esse é o seu “docs raiz”**
 
-- Melhor material conceitual-técnico existente hoje
-- Base real de entendimento do ecossistema
+- melhor material conceitual-técnico existente hoje
+- base real de entendimento do ecossistema
 
-📌 Use para:
-- entender a EVM
+📌 use para:
+- entender a evm
 - entender contas, transações e gas
 - entender smart contracts como sistema
 
-👍 É estruturado, mas:
+👍 é estruturado, mas:
 - não é didático no sentido tradicional
 - funciona como **referência profunda**
 
 ---
 
-## 🔹 3) Solidity Documentation  
+## 🔹 3) solidity documentation  
 https://docs.soliditylang.org/en/v0.8.31/
 
-👉 **Manual da linguagem, não curso**
+👉 **manual da linguagem, não curso**
 
-📌 Use para:
+📌 use para:
 - consultar sintaxe
 - entender:
   - tipos
@@ -4852,69 +4897,69 @@ https://docs.soliditylang.org/en/v0.8.31/
   - memória
 - confirmar comportamentos específicos
 
-🚫 Não tente “aprender Solidity” lendo isso do começo ao fim  
-Vai ser improdutivo e frustrante.
+🚫 não tente “aprender solidity” lendo isso do começo ao fim  
+vai ser improdutivo e frustrante.
 
 ---
 
-## 🔹 4) Ethereum Development Docs (eth-develop)  
+## 🔹 4) ethereum development docs (eth-develop)  
 https://eth-develop.readthedocs.io/
 
-👉 **Subestimado e bom**
+👉 **subestimado e bom**
 
-Apesar de mais antigo:
+apesar de mais antigo:
 - é mais direto
 - tem menos marketing
 - foca mais em engenharia “raiz”
 
-📌 Bom para:
+📌 bom para:
 - criar base mental inicial
 - entender conceitos sem ruído
 
 ---
 
-## 🔑 2️⃣ Documentações adicionais recomendadas
+## 🔑 2️⃣ documentações adicionais recomendadas
 
-Essas complementam muito bem as oficiais.
+essas complementam muito bem as oficiais.
 
 ---
 
-## 🔑 A) OpenZeppelin Learn  
+## 🔑 a) openzeppelin learn  
 https://docs.openzeppelin.com/learn/
 
-👉 **Isso aqui é ouro**
+👉 **isso aqui é ouro**
 
-Por quê?
-- conecta Solidity + segurança + padrões
+por quê?
+- conecta solidity + segurança + padrões
 - explica *por que* as coisas são feitas
 - mostra armadilhas reais de produção
 
-📌 Se você ler apenas **um material além dos oficiais**, que seja este.
+📌 se você ler apenas **um material além dos oficiais**, que seja este.
 
 ---
 
-## 🔑 B) Ethereum Yellow Paper (opcional, seletivo)
+## 🔑 b) ethereum yellow paper (opcional, seletivo)
 
-👉 Não é para ler inteiro
+👉 não é para ler inteiro
 
-Use para:
-- entender o papel formal da EVM
+use para:
+- entender o papel formal da evm
 - saber que existe uma especificação matemática da rede
 
-📌 Serve para consulta pontual, não estudo linear.
+📌 serve para consulta pontual, não estudo linear.
 
 ---
 
-## 🔑 C) Hardhat Docs (mais tarde)  
+## 🔑 c) hardhat docs (mais tarde)  
 https://hardhat.org/docs
 
-👉 **Não agora**
+👉 **não agora**
 
-📌 Use somente quando:
+📌 use somente quando:
 - você estiver prestes a escrever contratos
-- já entender EVM + Solidity básico
+- já entender evm + solidity básico
 
-Antes disso, vira ruído.
+antes disso, vira ruído.
 
 ---
 <!-- TODO: Perguntas que preciso responder-->
