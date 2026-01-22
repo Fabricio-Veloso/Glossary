@@ -2222,8 +2222,8 @@ Ou, de forma mais explícita:
 > (funções, argumentos, retornos, erros, eventos)  
 > são transformados em **bytes** e interpretados de forma idêntica por:
 >
-> \- contratos na EVM  
-> \- ferramentas off-chain (RPCs, libs, explorers, indexers)
+> - contratos na EVM  
+> - ferramentas off-chain (RPCs, libs, explorers, indexers)
 
 Nada mais. Nada menos.
 
@@ -2235,16 +2235,16 @@ Esse ponto é **crítico** para o modelo mental correto.
 
 A EVM **só entende**:
 
-\- bytes  
-\- posições de memória  
-\- opcodes  
+- bytes  
+- posições de memória  
+- opcodes  
 
 Logo:
 
-\- “chamar uma função”  
-\- “emitir um evento”  
-\- “retornar um valor”  
-\- “lançar um erro”  
+- “chamar uma função”  
+- “emitir um evento”  
+- “retornar um valor”  
+- “lançar um erro”  
 
 👉 tudo isso são **abstrações criadas pelo ABI**, não pela EVM.
 
