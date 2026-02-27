@@ -26,18 +26,18 @@ Esse comportamento só muda quando você aplica CSS que altera:
 
 ## 2. Por que seus elementos às vezes ficaram um em cima do outro?
 
-    No seu layout, isto aqui controla a disposição horizontal:
+No seu layout, isto aqui controla a disposição horizontal:
 
-    ```html
+```html
     <div id="preview-wrapper"
     style="position:relative; margin-top:20px; display:flex; gap:16px;">
-    ```
+```
 
-    O display:flex é o que coloca os itens lado a lado.
+- O display:flex é o que coloca os itens lado a lado.
 
-    Se você remove essa div ou remove o display:flex, cada filho volta para o comportamento padrão de bloco → fica um em cima do outro.
+- Se você remove essa div ou remove o display:flex, cada filho volta para o comportamento padrão de bloco → fica um em cima do outro.
 
-    Ou seja, o “culpado” não é o position:relative, mas sim o fluxo normal que volta quando o flex desaparece.
+- Ou seja, o “culpado” não é o position:relative, mas sim o fluxo normal que volta quando o flex desaparece.
 
     ---
 
@@ -65,16 +65,15 @@ Esse comportamento só muda quando você aplica CSS que altera:
 
 ### 3.2. Permitir deslocamentos opcionais
 
-    Se você colocar:
-    ```css
-    position:relative;
+- Se você colocar:
+```css
+position:relative;
 top:10px;
 left:20px;
 ```
+- Ele continua ocupando seu espaço normal, mas o visual dele é deslocado por cima do layout.
 
-Ele continua ocupando seu espaço normal, mas o visual dele é deslocado por cima do layout.
-
-Isso é útil para ajustes finos, mas não para layouts estruturais.
+- Isso é útil para ajustes finos, mas não para layouts estruturais.
 
 ### Resumo rápido:
 
