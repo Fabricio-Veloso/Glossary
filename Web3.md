@@ -1638,7 +1638,7 @@ Isso **não é teórico** — aconteceu em produção.
 
 ---
 
-##### 🔥 Filosofia moderna do Solidity para iso de call
+##### 🔥 Filosofia moderna do Solidity para uso de call
 
 ❌ Não presuma quanto gas o outro contrato precisa  
 ✅ Deixe o receptor decidir  
@@ -1670,16 +1670,16 @@ Sim. **Se usado errado**.
 O risco clássico é **reentrancy**.
 
 #### ❌ Padrão inseguro
-
+```solidity
 `(bool ok, ) = user.call{value: amount}("");  
 require(ok);  
 balances[user] -= amount;`
-
+```
 ---
 
 #### ✅ Padrão correto (Checks → Effects → Interactions)
-
-`balances[user] -= amount;  
+```lua
+balances[user] -= amount;  
 (bool ok, ) = user.call{value: amount}("");  
 require(ok);`
 
@@ -1688,7 +1688,7 @@ Ou usar `ReentrancyGuard`.
 👉 O ponto-chave:
 
 `call` não é inseguro — **código mal estruturado é**.
-
+```
 ---
 
 #### Resumo mental (call)
@@ -1716,7 +1716,7 @@ Se você lembrar só de uma frase:
 
 ---
 
-#### Dúvida central (quais de fato são as diferenças entre transfer e send?)
+#### Dúvida central: (quais de fato são as diferenças entre transfer e send?)
 
 > então a diferença entre `transfer` e `send` é apenas que `send` não reverte automaticamente?
 
